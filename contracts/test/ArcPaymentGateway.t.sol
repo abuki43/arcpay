@@ -193,6 +193,17 @@ contract ArcPaymentGatewayTest is Test {
         gateway.payNative{value: 100 ether}(orderId, payable(address(rejecter)), "meta");
     }
 
+    function test_PayNative_RevertIf_FeeRecipientTransferFails() public {
+        RejectingReceiver badFeeRecipient = new RejectingReceiver();
+        ArcPaymentGateway badGateway = new ArcPaymentGateway(payable(address(badFeeRecipient)), 40);
+        bytes32 orderId = keccak256("bad_fee_recipient_order");
+
+        vm.deal(customer, 100 ether);
+        vm.prank(customer);
+        vm.expectRevert(abi.encodeWithSelector(ArcPaymentGateway.TransferFailed.selector, address(badFeeRecipient), 0.40 ether));
+        badGateway.payNative{value: 100 ether}(orderId, merchant, "meta");
+    }
+
     // -------------------------------------------------------------------------
     // payNativeWithSplit Tests
     // -------------------------------------------------------------------------
@@ -241,6 +252,53 @@ contract ArcPaymentGatewayTest is Test {
 
         assertTrue(gateway.isOrderPaid(orderId));
         assertEq(gateway.merchantVolume(merchant), creatorAmount);
+    }
+
+    function test_PayNativeWithSplit_ZeroMerchantOrZeroAffiliate_Success() public {
+        // Case A: 100% affiliate commission (merchant = 0, affiliate = 99.60 ether)
+        bytes32 orderA = keccak256("split_zero_merchant");
+        uint256 gross = 100 ether;
+        uint256 net = 99.60 ether;
+
+        uint256 initAffiliateBal = affiliate.balance;
+        vm.prank(customer);
+        gateway.payNativeWithSplit{value: gross}(orderA, merchant, 0, affiliate, net, "zero_merchant");
+        assertEq(affiliate.balance, initAffiliateBal + net);
+        assertTrue(gateway.isOrderPaid(orderA));
+
+        // Case B: 100% merchant (merchant = 99.60 ether, affiliate = 0)
+        bytes32 orderB = keccak256("split_zero_affiliate");
+        uint256 initMerchantBal = merchant.balance;
+        vm.prank(customer);
+        gateway.payNativeWithSplit{value: gross}(orderB, merchant, net, affiliate, 0, "zero_affiliate");
+        assertEq(merchant.balance, initMerchantBal + net);
+        assertTrue(gateway.isOrderPaid(orderB));
+    }
+
+    function test_PayNativeWithSplit_ReplayAttack_Reverts() public {
+        bytes32 orderId = keccak256("split_replay");
+        uint256 gross = 100 ether;
+
+        vm.prank(customer);
+        gateway.payNativeWithSplit{value: gross}(orderId, merchant, 80 ether, affiliate, 19.6 ether, "first");
+
+        vm.prank(customer);
+        vm.expectRevert(abi.encodeWithSelector(ArcPaymentGateway.PaymentAlreadySettled.selector, orderId));
+        gateway.payNativeWithSplit{value: gross}(orderId, merchant, 80 ether, affiliate, 19.6 ether, "second");
+    }
+
+    function test_CrossFunction_ReplayAttack_Reverts() public {
+        bytes32 orderId = keccak256("cross_replay");
+        uint256 gross = 100 ether;
+
+        // First pay with payNative
+        vm.prank(customer);
+        gateway.payNative{value: gross}(orderId, merchant, "pay_native");
+
+        // Attempt replay via payNativeWithSplit
+        vm.prank(customer);
+        vm.expectRevert(abi.encodeWithSelector(ArcPaymentGateway.PaymentAlreadySettled.selector, orderId));
+        gateway.payNativeWithSplit{value: gross}(orderId, merchant, 80 ether, affiliate, 19.6 ether, "split_attempt");
     }
 
     function test_PayNativeWithSplit_RevertIf_SplitMathMismatch() public {
