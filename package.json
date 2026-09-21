@@ -1,0 +1,13 @@
+{
+  "name": "arcpay-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter @arcpay/sdk build && pnpm --filter arcpay-web build",
+    "dev": "pnpm --filter arcpay-web dev",
+    "test:contracts": "cd contracts && forge test -vvv"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js build outputs
+apps/web/.next/
+apps/web/out/
+apps/web/build/
+
+# Foundry / Solidity artifacts
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# TypeScript / SDK builds
+dist/
+packages/*/dist/
+
+# Environment variables & keys
+.env
+.env.local
+.env*.local
+*.pem
+*.key
+
+# Logs & OS artifacts
+*.log
+.DS_Store
+Thumbs.db

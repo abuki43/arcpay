@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 222 47% 6%;
+  --foreground: 210 40% 98%;
+  --card: 222 47% 9%;
+  --card-foreground: 210 40% 98%;
+  --primary: 142 71% 45%;
+  --primary-foreground: 222 47% 6%;
+  --border: 217 33% 15%;
+  --input: 217 33% 15%;
+  --ring: 142 71% 45%;
+  --radius: 0.75rem;
+}
+
+body {
+  background-color: #0b0f17;
+  color: #f8fafc;
+  min-height: 100vh;
+}
