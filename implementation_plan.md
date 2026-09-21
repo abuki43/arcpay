@@ -1,304 +1,254 @@
 # Technical Implementation Plan: ArcPay
 
-This document is the exhaustive technical blueprint for **ArcPay** — an open-source, developer-first payment protocol, TypeScript SDK, and Point-of-Sale ecosystem purpose-built for the **Arc Network** (Circle's Layer-1 blockchain with native USDC gas).
+ArcPay is an open-source, developer-first payment protocol and embeddable checkout SDK purpose-built for the **Arc Network** (Circle's Layer-1 blockchain with native USDC gas and sub-second finality).
 
 ---
 
-## 1. Executive Technical Architecture
+## 1. Executive Summary & Core Product Focus
+
+ArcPay provides a Stripe/LemonSqueezy-like developer experience for Web3, allowing SaaS founders and digital creators to drop in a single checkout button (`<ArcPayButton />`) and accept USDC with **0.40% low protocol fees**, **~600ms deterministic settlement**, and **zero gas token friction**.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                 ARCPAY SYSTEM TOPOLOGY                                 │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 
- [ CLIENT APPS / USERS ]           [ CREATORS / SAAS FOUNDERS ]       [ PHYSICAL RETAILERS ]
-   • PayLink Checkout (/pay)         • Next.js / Node.js Backends       • ArcPOS Terminal (/pos)
-   • 1-Click Wallet Signature        • No-Code Link Studio (/create)    • Dynamic EIP-681 QR
-             │                                    │                               │
-             └────────────────────────────────────┼───────────────────────────────┘
-                                                  ▼
-                         ┌─────────────────────────────────────────────────┐
-                         │       ARCPAY TYPESCRIPT SDK (@arcpay/sdk)       │
-                         │  • Client Transaction Helpers (Viem / Wagmi)    │
-                         │  • Server verifyArcPayment() RPC Engine         │
-                         │  • Chain Configs (Arc Testnet 5042002 & 5042)   │
-                         └─────────────────────────────────────────────────┘
-                                                  │
-                                                  ▼ JSON-RPC / WebSocket
-                         ┌─────────────────────────────────────────────────┐
-                         │       ARC NETWORK LAYER-1 (Circle Blockchain)   │
-                         │  • Native Gas Token: USDC (18 Decimals)         │
-                         │  • Malachite Consensus: ~600ms Finality         │
-                         │  • USDC Precompile: 0x3600...0000               │
-                         └─────────────────────────────────────────────────┘
-                                                  │
-                                                  ▼
-                         ┌─────────────────────────────────────────────────┐
-                         │       ArcPaymentGateway.sol (Smart Contract)    │
-                         │  • 0.40% Protocol Fee Routing to Treasury       │
-                         │  • 99.60% Instant Merchant Payout               │
-                         │  • Split Payment Routing (Affiliate / Platform) │
-                         │  • Cryptographic Order ID & Replay Protection   │
-                         │  • PaymentSettled & PaymentSplitSettled Events  │
-                         └─────────────────────────────────────────────────┘
+    [ SAAS WEBSITES & APPS ]           [ CREATORS & FREELANCERS ]      [ DEVELOPERS & APIS ]
+    • Drop-in <ArcPayButton />         • No-Code PayLinks (/create)    • useCheckout() Hook
+    • Demo Storefront (/store)         • Hosted Checkout (/pay)        • verifyArcPayment() Engine
+               │                                   │                               │
+               └───────────────────────────────────┼───────────────────────────────┘
+                                                   ▼
+                          ┌─────────────────────────────────────────────────┐
+                          │       ARCPAY TYPESCRIPT SDK (@arcpay/sdk)       │
+                          │  • <ArcPayButton /> (React Component + Modal)   │
+                          │  • <arc-pay-button> (Universal Web Component)   │
+                          │  • useCheckout() Headless React Hook            │
+                          │  • verifyArcPayment() Server-Side RPC Engine    │
+                          │  • Client Utils: createPayLinkUrl, parseUsdc    │
+                          └─────────────────────────────────────────────────┘
+                                                   │
+                                                   ▼ JSON-RPC (Wagmi Injected)
+                          ┌─────────────────────────────────────────────────┐
+                          │       ARC NETWORK LAYER-1 (Circle Blockchain)   │
+                          │  • Native Gas Token: USDC (18 Decimals)         │
+                          │  • Sub-Second Finality: ~600ms                  │
+                          │  • Testnet: 5042002  |  Mainnet: 5042           │
+                          └─────────────────────────────────────────────────┘
+                                                   │
+                                                   ▼
+                          ┌─────────────────────────────────────────────────┐
+                          │       ArcPaymentGateway.sol (Smart Contract)    │
+                          │  • 0.40% Protocol Fee Routing to Treasury       │
+                          │  • 99.60% Instant Settlement to Merchant Wallet │
+                          │  • Split Routing (Affiliates & Platforms)       │
+                          │  • Order ID Hashing & Replay Protection         │
+                          │  • Event Emission: PaymentSettled               │
+                          └─────────────────────────────────────────────────┘
+                                                   │
+                                                   ▼ Wagmi useWatchContractEvent
+                          ┌─────────────────────────────────────────────────┐
+                          │       MERCHANT DASHBOARD (/dashboard)           │
+                          │  • Zero-Database, 100% Client-Side Log Queries  │
+                          │  • Real-Time Payment Feed & Volume Analytics    │
+                          └─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Business Model & Protocol Fee Economics (The 0.4% Model)
+## 2. Key Technical Decisions & Architecture Principles
 
-### 2.1 Fee Math & Settlement Mechanics
-* **Protocol Fee Rate**: `40 basis points` = **`0.40%`** (`1 bp = 0.01%`).
-* **Maximum Fee Safety Cap**: Hardcoded in smart contract at `100 basis points` = **`1.00%`**.
-* **Formula**:
-  $$\text{Protocol Fee} = \frac{\text{Payment Amount} \times 40}{10000}$$
-  $$\text{Merchant Net Payout} = \text{Payment Amount} - \text{Protocol Fee}$$
+### 2.1 Gas & Value Model: Pure Native USDC
+* On Arc, **USDC is the native gas token**. Buyers pay for goods and transaction fees directly from their USDC balance.
+* No paymasters, relayer infrastructure, or gas sponsorship needed. 1 USDC = 1 USD throughout the entire stack.
+* **1-Click Checkout Advantage**: Unlike Ethereum/Base where USDC payments require two transactions (approve + transferFrom), Arc pays via `msg.value` in a **single native transaction**. The checkout modal must display: "Zero token approvals needed — pay in one click."
 
-### 2.2 Comparison vs Traditional & Crypto Rails
+### 2.2 Wallet Connection: Wagmi Injected (Zero API Key Overhead)
+* Uses Wagmi v2 `injected()` connector supporting all standard EVM browser wallets (MetaMask, Rabby, Brave Wallet, Coinbase Wallet extension, Phantom EVM, OKX).
+* Avoids third-party WalletConnect Cloud project ID configuration, making `@arcpay/sdk` completely plug-and-play.
 
-| Dimension | Legacy Rails (Stripe / Square) | Traditional Crypto (Ethereum/Base) | **ArcPay on Arc L1** |
-| :--- | :--- | :--- | :--- |
-| **Merchant Cut** | **2.9% + $0.30 per transaction** | 1.0% + Gas conversion losses | **0.40% Flat Protocol Fee** |
-| **$50 Sale Fee** | **$1.75** (3.5% effective) | $0.50 + ETH Gas | **$0.20** (88% savings) |
-| **$100 Sale Fee** | **$3.20** (3.2% effective) | $1.00 + ETH Gas | **$0.40** (87% savings) |
-| **Payout Delay** | **3 to 7 business days** | 5 to 15 minutes | **~600 Milliseconds (Instant)** |
-| **Gas Dependency** | None (Fiat) | Must buy & manage ETH/SOL | **Pure USDC (Zero gas friction)** |
-| **Chargeback Risk** | High (Fraudulent disputes hurt SaaS)| None | **Zero (Mathematical finality)** |
+### 2.3 Event Monitoring: 100% Client-Side On-Chain Streaming
+* The **Merchant Dashboard (`/dashboard`)** requires no backend server or Postgres database.
+* Uses Wagmi's `useWatchContractEvent` for live incoming payments and `publicClient.getLogs` filtered by `merchant == connectedAddress` for historical sales.
+* **getLogs Range Handling**: Public RPC endpoints cap `getLogs` at ~10,000-50,000 blocks. The dashboard must use the contract's deployment block as `fromBlock` (not block 0) and query in rolling batches. Add a "Load earlier transactions" button for pagination.
+
+### 2.4 Toolchain: Arc Foundry (`arc-forge`)
+* Smart contracts are built and tested using **Arc Foundry (`circlefin/arc-foundry`)** and standard EVM Foundry tools with Arc RPC configurations.
+
+### 2.5 Scope Boundaries & Deferred Features
+* **Cross-Chain / CCTP**: Explicitly deferred to V2 to highlight Arc's sub-second single-currency advantage.
+* **ArcPOS Terminal (`/pos`)**: Deferred to post-hackathon roadmap.
+* **Developer Playground (`/playground`)**: Replaced by interactive code snippets inside the **Documentation Hub (`/docs`)** and live interactive buttons on the **Demo Storefront**.
 
 ---
 
-## 3. Component Deep Dive & Specifications
+## 3. Business Model & Protocol Fee Economics (The 0.4% Model)
 
-### 3.1 Smart Contract Layer (`contracts/`)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       PAYMENT & FEE FLOW (0.4% MODEL)                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Customer pays $100.00 USDC                                                │
+│         │                                                                   │
+│         ▼                                                                   │
+│   ArcPaymentGateway.sol (Arc Mainnet / Testnet)                             │
+│         │                                                                   │
+│         ├── (99.6%) ──► $99.60 USDC  ──► Merchant Wallet (Instant Settlement)│
+│         │                                                                   │
+│         └── ( 0.4%) ──► $ 0.40 USDC  ──► ArcPay Protocol Treasury           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-#### Contract: `ArcPaymentGateway.sol`
+* **0.40% Protocol Fee (40 bps)**: 7x cheaper than Stripe's 2.9% + $0.30 cut.
+* **Hardcoded Safety Cap**: Max fee cap in smart contract is 1.00% (100 bps).
+* **Sustainable Revenue**: At $1M monthly processing volume, the protocol generates **$4,000/month** non-custodial revenue for the ArcPay DAO/Treasury.
+
+---
+
+## 4. Component Technical Specifications
+
+### A. Smart Contract Layer (`contracts/`)
+
+#### [`ArcPaymentGateway.sol`](file:///home/abuki/Desktop/projects/self/arc/arcmicrogrant/contracts/src/ArcPaymentGateway.sol)
 * **Solidity Version**: `^0.8.20`
-* **EVM Target**: Paris / Shanghai compatible (Standard EVM for Arc)
-* **Data Structures**:
+* **Data Struct**:
   ```solidity
   struct PaymentRecord {
       bytes32 orderId;           // Unique 32-byte cryptographic identifier
       address merchant;          // Recipient merchant wallet
       address payer;             // Address of customer / wallet
       address token;             // address(0) for native USDC
-      uint256 amount;            // Total gross USDC amount sent (18 decimals)
-      uint256 protocolFee;       // 0.4% fee amount deducted to treasury
+      uint256 amount;            // Gross USDC amount sent (18 decimals)
+      uint256 protocolFee;       // 0.4% fee amount routed to treasury
       uint256 timestamp;         // Block timestamp of settlement
       bool isSettled;            // Status flag (true = settled)
-      string metadata;           // Arbitrary metadata (JSON, SKU, order notes)
+      string metadata;           // Order metadata string (JSON, SKU, customer ref)
   }
   ```
-
-* **Core Functions**:
-  1. `payNative(bytes32 orderId, address payable merchant, string calldata metadata) external payable`:
-     - Checks: `msg.value > 0`, `merchant != address(0)`, and `!payments[orderId].isSettled`.
-     - Calculates: `fee = (msg.value * feeBps) / 10000` (0.4%).
-     - Transfers `fee` to `feeRecipient` (protocol treasury).
-     - Transfers `msg.value - fee` (99.6%) to `merchant`.
-     - Stores `payments[orderId]` record.
-     - Emits `PaymentSettled(orderId, merchant, msg.sender, address(0), msg.value, fee, block.timestamp, metadata)`.
-
-  2. `payNativeWithSplit(bytes32 orderId, address payable merchant, uint256 merchantAmount, address payable affiliate, uint256 affiliateAmount, string calldata metadata) external payable`:
-     - Allows dynamic revenue sharing (e.g. 80% Creator, 19.6% Platform, 0.4% ArcPay Treasury).
-     - Verifies: `merchantAmount + affiliateAmount + fee == msg.value`.
-     - Transfers each allocation in a single atomic transaction.
-     - Emits `PaymentSplitSettled(...)`.
-
-  3. `getPayment(bytes32 orderId) external view returns (PaymentRecord memory)`:
-     - Returns on-chain settlement details for external verification.
-
-  4. `setFeeConfig(uint256 _feeBps, address payable _feeRecipient) external onlyOwner`:
-     - Enforces `require(_feeBps <= 100, "ArcPay: fee cannot exceed 1.00%")`.
-
-#### Testing Suite: `contracts/test/ArcPaymentGateway.t.sol`
-* **Coverage Requirements**: 100% test coverage using Foundry.
-* **Test Cases**:
-  - `testPayNativeWith04PercentFee()`: Validates exact math on 100 USDC payment ($99.60 to merchant, $0.40 to treasury).
-  - `testRevertZeroPayment()`: Reverts when `msg.value == 0`.
-  - `testRevertInvalidMerchant()`: Reverts when `merchant == address(0)`.
-  - `testRevertDuplicateOrderSettlement()`: Reverts replay attacks on the same `orderId`.
-  - `testPayNativeWithSplitAndFee()`: Validates multi-recipient atomic split routing.
-  - `testFeeConfigCapAt1Percent()`: Enforces protocol fee cap.
-  - `testTransferOwnership()`: Validates owner access control.
+* **Functions**:
+  * `payNative(bytes32 orderId, address payable merchant, string calldata metadata) payable`:
+    - Validates `msg.value > 0`, `merchant != address(0)`, and `!payments[orderId].isSettled`.
+    - Routes `0.4%` fee to `feeRecipient` and `99.6%` to `merchant`.
+    - Emits `PaymentSettled(...)`.
+  * `payNativeWithSplit(bytes32 orderId, address payable merchant, uint256 merchantAmount, address payable affiliate, uint256 affiliateAmount, string calldata metadata) payable`:
+    - Handles custom splits (e.g. Creator 80%, Platform 19.6%, ArcPay Treasury 0.4%).
+  * `getPayment(bytes32 orderId) view returns (PaymentRecord memory)`:
+    - View function returning settlement record.
+  * `setFeeConfig(uint256 _feeBps, address payable _feeRecipient) onlyOwner`:
+    - Updates protocol fee (capped at 100 bps / 1.00%).
 
 ---
 
-### 3.2 TypeScript SDK Layer (`packages/sdk/`)
+### B. TypeScript SDK Layer (`packages/sdk/`)
 
 * **Package Name**: `@arcpay/sdk`
-* **Module Formats**: Dual ESM (`dist/index.mjs`) and CommonJS (`dist/index.js`) with TypeScript declarations (`dist/index.d.ts`).
-* **Dependencies**: `viem` (v2.x).
+* **Build Target**: Dual ESM/CJS with full `.d.ts` declaration maps.
 
-#### Client API (`@arcpay/sdk`)
-1. `createPayLinkUrl(params)`:
-   - Takes `{ baseUrl, merchant, amount, item, orderId, redirectUrl, metadata }`.
-   - Serializes query parameters into a clean URL (`https://arcpay.network/pay?merchant=0x...&amount=29.00&item=Pro+Plan`).
-2. `generateOrderId(prefix?: string)`:
-   - Generates a collision-resistant `bytes32` order hash: `keccak256(toUtf8Bytes("${prefix}_${Date.now()}_${random}"))`.
-3. `parseUsdc(amount: number | string): bigint`:
-   - Converts standard dollar amount (`29.50`) to 18-decimal wei (`29500000000000000000n`).
-4. `formatUsdc(amountWei: bigint, decimals?: number): string`:
-   - Formats 18-decimal wei into formatted USD string (`"$29.50"`).
-5. `arcTestnet` & `arcMainnet`:
-   - Pre-configured Viem chain definitions with official RPCs and block explorers.
+#### 1. React Pre-Built Component: `<ArcPayButton />`
+```tsx
+import { ArcPayButton } from '@arcpay/sdk/react';
 
-#### Server / Webhook API (`@arcpay/sdk/server`)
-* **`verifyArcPayment(params: VerifyPaymentParams): Promise<VerificationResult>`**:
-  - The core anti-forgery engine. Executes a 4-step cryptographic check against Arc RPC:
-    ```
-    Step 1: Fetch transaction receipt via eth_getTransactionReceipt(txHash).
-            Assert receipt.status === 'success'.
-    Step 2: Parse logs using ArcPaymentGatewayABI.
-            Locate PaymentSettled or PaymentSplitSettled event.
-    Step 3: Assert event.merchant.toLowerCase() === expectedMerchant.toLowerCase().
-    Step 4: Assert event.amount >= parseUsdc(expectedAmount) AND event.orderId === expectedOrderId.
-    ```
-  - Returns `{ success: true, record: PaymentSettledRecord }` or `{ success: false, error: string }`.
+<ArcPayButton
+  merchant="0xMerchantAddress..."
+  amount={29.00}
+  item="CloudAI Pro Plan"
+  metadata={{ userId: "usr_4021" }}
+  onSuccess={(receipt) => console.log("Paid on Arc:", receipt.txHash)}
+  onError={(err) => console.error(err)}
+/>
+```
+* **Order ID is auto-generated by the SDK**. Developers never pass `orderId` directly — the SDK generates a unique `bytes32` hash per checkout attempt to prevent replay reverts on retries or renewals. Stable user identifiers (e.g. `userId`) go in `metadata`.
+* Automatically handles:
+  - Button styling (customizable themes: emerald, dark, minimal).
+  - Opening the built-in checkout modal.
+  - Injected wallet connection and automatic network switching to Arc.
+  - Mobile browser detection: displays QR code and "Open in MetaMask" deep link if no injected provider is found.
+  - Submitting transaction and triggering success callbacks.
+
+#### 2. Universal Web Component: `<arc-pay-button>`
+* Custom element for non-React websites (Webflow, Shopify, WordPress, Vanilla HTML):
+```html
+<script src="https://cdn.arcpay.network/v1/arcpay.js"></script>
+<arc-pay-button
+  merchant="0xMerchantAddress..."
+  amount="29.00"
+  item="Digital Design Pack">
+</arc-pay-button>
+```
+
+#### 3. Headless React Hook: `useCheckout()`
+* For developers building bespoke UI workflows:
+```tsx
+const { checkout, isPaying, isSuccess, error } = useCheckout();
+await checkout({ merchant, amount: 29.00, orderId });
+```
+
+#### 4. Server-Side Verification: `verifyArcPayment()`
+* 4-step cryptographic verification engine querying Arc RPC in `<50ms`.
 
 ---
 
-### 3.3 Web Application & UI Architecture (`apps/web/`)
+### C. Web Application & UI Architecture (`apps/web/`)
 
-* **Framework**: Next.js 15 (App Router), React 19, TypeScript.
-* **Styling**: Tailwind CSS with dark-mode fintech aesthetic.
-* **Component Library**: **shadcn/ui** (Button, Card, Badge, Input, Tabs, Dialog, Toast).
-* **Web3 Integration**: Wagmi v2 + Viem + Injected connector.
-
-#### Route Map & Features:
-
-```
-apps/web/app/
-├── layout.tsx             # Root layout with global Providers and Navbar
-├── page.tsx               # Landing Page (Overview, 0.4% vs Stripe comparisons)
-├── pos/
-│   └── page.tsx           # ArcPOS Cashier Terminal (Dynamic QR, Web Audio chime, Receipt)
-├── create/
-│   └── page.tsx           # PayLink Studio (No-code generator, live preview, local history)
-├── pay/
-│   └── page.tsx           # Hosted 1-Click Checkout modal with Arc network auto-switch
-├── docs/
-│   └── page.tsx           # Comprehensive Documentation Hub (Quickstart, Fee model, SDK reference)
-└── playground/
-    └── page.tsx           # Interactive Code Generator & Live Arc RPC Diagnostic Tool
-```
-
-#### Detailed Page Specifications:
-
-1. **`apps/web/app/pos/page.tsx` (ArcPOS Cashier Terminal)**:
-   - **Keypad State Machine**:
-     - `amountStr`: Tracks cashier input (e.g. `"4.50"`).
-     - Preset buttons: Espresso ($3.50), Latte ($4.75), Bakery ($3.25), Consult ($50.00).
-     - Numeric grid (1-9, ., 0, Clear, Backspace).
-   - **Dynamic QR Code**:
-     - Generates EIP-681 payload formatted as `ethereum:<gateway>@<chainId>/payNative?orderId=<id>&merchant=<addr>&value=<amt>`.
-   - **Sound & Haptic Feedback**:
-     - Built-in Web Audio API synthesizer (`playSuccessChime()`) playing high-frequency dual sine wave (E5 -> B5).
-     - Confetti canvas explosion (`canvas-confetti`).
-   - **Receipt Modal**:
-     - Displays Order ID, Merchant, Amount, 0.4% Fee, Timestamp, and live Arc Explorer link.
-   - **Instant Sandbox Mode**:
-     - 1-click simulation allowing judges/reviewers to experience the full checkout flow without live wallet funds.
-
-2. **`apps/web/app/create/page.tsx` (PayLink Studio)**:
-   - Form inputs: Item Title, Amount in USDC, Merchant Payout Address, Product Description, Success Redirect URL.
-   - Real-time live preview card simulating customer checkout screen.
-   - Generates instant copyable URL and QR code.
-   - Saves created links to `localStorage` for merchant dashboard history.
-
-3. **`apps/web/app/pay/page.tsx` (Hosted 1-Click Checkout)**:
-   - Reads URL search params (`merchant`, `amount`, `item`, `redirectUrl`, `orderId`).
-   - Wallet connection check & balance display.
-   - Automatic Arc network detection (prompts to switch to Arc Testnet / Mainnet).
-   - Single-click payment execution (`payNative`).
-   - Success state with explorer transaction link and automatic redirect.
-
-4. **`apps/web/app/docs/page.tsx` (Documentation Hub)**:
-   - Interactive table of contents.
-   - Section 1: Quickstart guide (installing `@arcpay/sdk` and embedding `<ArcPayButton />`).
-   - Section 2: The 0.4% fee model and fee economics breakdown.
-   - Section 3: Server-side `verifyArcPayment()` implementation in Next.js API routes.
-   - Section 4: Smart contract method signatures and event schemas.
-   - Section 5: Network constants (Chain IDs, RPCs, Explorers, Circle Faucet link).
-
-5. **`apps/web/app/playground/page.tsx` (Developer Studio & Diagnostics)**:
-   - Interactive prop configuration (adjust amount, order ID, merchant address).
-   - Code viewer tabs: React Component, Node.js Webhook, cURL / RPC, Vanilla HTML.
-   - Live RPC Diagnostic Tool: Input any Arc transaction hash and test the verification engine with latency measurement.
+* **Framework**: Next.js 15 App Router, React 19, Tailwind CSS, shadcn/ui components.
+* **Routes**:
+  1. **`/` (Overview & Demo Storefront)**:
+     - Hero overview with 0.4% fee comparisons vs Stripe.
+     - **Live Demo Storefront**: Interactive SaaS pricing card ("CloudAI Pro - $29 USDC") using `<ArcPayButton />` with live code preview tabs.
+  2. **`/dashboard` (Merchant Dashboard)**:
+     - Connect wallet to view real-time sales feed and total volume.
+     - Client-side Wagmi `useWatchContractEvent` and `getLogs` queries.
+  3. **`/create` (PayLink Studio)**:
+     - No-code link generator for creators, invoices, and digital goods.
+     - Real-time customer checkout preview.
+  4. **`/pay` (Hosted 1-Click Checkout)**:
+     - Standalone checkout page for shareable PayLinks.
+  5. **`/docs` (Documentation Hub)**:
+      - Step-by-step Quickstart guide, `<ArcPayButton />` props table, `useCheckout()` reference, and server verification tutorials.
+      - **Payment Recovery**: Document that SaaS backends should call `verifyArcPayment()` independently to recover payments where the customer closed the tab before the frontend confirmed.
 
 ---
 
-## 4. Network Specifications & Environment Staging
+## 5. Network Specifications & Environments
 
 | Parameter | Arc Testnet (Phase 1) | Arc Mainnet (Phase 2) |
 | :--- | :--- | :--- |
 | **Network Name** | Arc Testnet | Arc |
 | **Chain ID** | `5042002` | `5042` |
-| **RPC URL** | `https://rpc.testnet.arc.io` | `https://rpc.mainnet.arc.io` |
-| **Currency Symbol** | `USDC` | `USDC` |
-| **Decimals** | 18 | 18 |
+| **RPC Endpoint** | `https://rpc.testnet.arc.io` | `https://rpc.mainnet.arc.io` |
+| **Native Gas Currency** | `USDC` (18 Decimals) | `USDC` (18 Decimals) |
 | **Block Explorer** | `https://explorer.testnet.arc.io` | `https://explorer.arc.io` |
-| **USDC ERC-20 Precompile** | `0x3600000000000000000000000000000000000000` | `0x3600000000000000000000000000000000000000` |
-| **Faucet** | `https://faucet.circle.com` (Select Arc Testnet) | N/A |
+| **Faucet** | `https://faucet.circle.com` (Arc Testnet) | N/A |
 
 ---
 
-## 5. Implementation Roadmap
+## 6. Implementation Checklist & Progress
 
-```
-  Phase 1: Smart Contracts (Foundry)
-  ├── 1.1 Write ArcPaymentGateway.sol (0.4% fee, split routing, replay protection)
-  ├── 1.2 Write ArcPaymentGateway.t.sol (100% test coverage)
-  ├── 1.3 Compile and verify test suite via `forge test -vvv`
-  └── 1.4 Configure Deploy.s.sol and foundry.toml for Arc networks
+* [ ] **Phase 1: Smart Contract Layer (Foundry / arc-forge)**
+  - [ ] Write `ArcPaymentGateway.sol` (0.4% fee, split routing, replay protection).
+  - [ ] Write `ArcPaymentGateway.t.sol` unit tests (100% test coverage).
+  - [ ] Configure `Deploy.s.sol` and `foundry.toml` for Arc networks.
 
-  Phase 2: TypeScript SDK (@arcpay/sdk)
-  ├── 2.1 Set up packages/sdk configuration (package.json, tsconfig.json, tsup)
-  ├── 2.2 Implement client helpers (chains, utils, ABI, types)
-  ├── 2.3 Implement server verifyArcPayment() RPC engine
-  └── 2.4 Build and export dual ESM/CJS bundles
+* [ ] **Phase 2: TypeScript SDK Layer (`@arcpay/sdk`)**
+  - [ ] Implement core utilities, ABI, and Viem chain configurations.
+  - [ ] Implement `<ArcPayButton />` React Component and Checkout Modal.
+  - [ ] Implement `<arc-pay-button>` Custom Element Web Component.
+  - [ ] Implement `useCheckout()` headless React hook.
+  - [ ] Implement server-side `verifyArcPayment()` RPC engine.
 
-  Phase 3: Web Application with shadcn/ui (apps/web)
-  ├── 3.1 Configure shadcn/ui components (Button, Card, Badge, Input, Tabs, Dialog)
-  ├── 3.2 Configure Wagmi v2 and Viem for Arc Testnet and Mainnet
-  ├── 3.3 Implement ArcPOS Terminal (/pos) with dynamic QR and Web Audio synthesizer
-  ├── 3.4 Implement PayLink Studio (/create) and Hosted Checkout (/pay)
-  ├── 3.5 Implement Documentation Hub (/docs) and Developer Playground (/playground)
-  └── 3.6 Verify production build with `pnpm build`
+* [ ] **Phase 3: Web Application with shadcn/ui (`apps/web`)**
+  - [ ] Set up shadcn/ui design system.
+  - [ ] Build Demo Storefront on `/` (SaaS pricing card with live button).
+  - [ ] Build Merchant Dashboard on `/dashboard` (Wagmi event stream).
+  - [ ] Build PayLink Studio on `/create` and Hosted Checkout on `/pay`.
+  - [ ] Build Documentation Hub on `/docs`.
 
-  Phase 4: Testnet Deployment & Faucet Verification
-  ├── 4.1 Deploy ArcPaymentGateway to Arc Testnet (Chain ID: 5042002)
-  ├── 4.2 Test end-to-end payment flows with Circle Faucet USDC
-  └── 4.3 Verify transaction receipts on ArcScan Testnet
+* [ ] **Phase 4: Arc Testnet Deployment & Verification**
+  - [ ] Deploy contract to Arc Testnet (`Chain ID: 5042002`).
+  - [ ] Test end-to-end payment flows with Circle Faucet USDC.
 
-  Phase 5: Mainnet Staging & DoraHacks Submission Pack
-  ├── 5.1 Prepare Arc Mainnet deployment configuration (Chain ID: 5042)
-  ├── 5.2 Create project README.md, architecture diagrams, and submission copy
-  └── 5.3 Prepare 60-second video demo walkthrough script
-```
-
----
-
-## 6. Verification & Quality Assurance Strategy
-
-1. **Foundry Unit Testing**:
-   ```bash
-   cd contracts && forge test -vvv
-   ```
-   *Validates 0.4% fee deductions, split math, zero slippage, replay rejection, and reentrancy protection.*
-
-2. **SDK Build Verification**:
-   ```bash
-   pnpm --filter @arcpay/sdk build
-   ```
-   *Verifies zero TypeScript errors and compiles `.mjs`, `.js`, and `.d.ts` outputs.*
-
-3. **Web Production Build**:
-   ```bash
-   pnpm --filter arcpay-web build
-   ```
-   *Validates all 6 static/dynamic routes (`/`, `/pos`, `/create`, `/pay`, `/docs`, `/playground`).*
-
-4. **Live End-to-End Test Matrix**:
-   * **POS Flow**: Input `$4.50` -> Scan QR / Click Pay -> Chime plays -> Digital receipt displays verified explorer link.
-   * **PayLink Flow**: Generate `$29.00` PayLink -> Open in browser -> Pay with USDC -> Confirm order metadata.
-   * **RPC Diagnostic Flow**: Submit transaction hash on `/playground` -> Confirm verified on Arc RPC in `<50ms`.
+* [ ] **Phase 5: Mainnet Staging & DoraHacks Submission Pack**
+  - [ ] Prepare Arc Mainnet deployment configuration (`Chain ID: 5042`).
+  - [ ] Generate README.md, architecture diagrams, and 60-second video demo walkthrough.
