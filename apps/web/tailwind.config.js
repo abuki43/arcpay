@@ -10,34 +10,34 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border, 217 33% 17%))",
-        input: "hsl(var(--input, 217 33% 17%))",
-        ring: "hsl(var(--ring, 142 71% 45%))",
-        background: "hsl(var(--background, 222 47% 6%))",
-        foreground: "hsl(var(--foreground, 210 40% 98%))",
+        border: "hsl(var(--border, 40 14% 85%))",
+        input: "hsl(var(--input, 40 14% 85%))",
+        ring: "hsl(var(--ring, 162 72% 30%))",
+        background: "hsl(var(--background, 40 22% 96%))",
+        foreground: "hsl(var(--foreground, 220 13% 10%))",
         primary: {
-          DEFAULT: "hsl(var(--primary, 142 71% 45%))",
-          foreground: "hsl(var(--primary-foreground, 222 47% 6%))",
+          DEFAULT: "hsl(var(--primary, 161 72% 26%))",
+          foreground: "hsl(var(--primary-foreground, 0 0% 100%))",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary, 217 33% 17%))",
-          foreground: "hsl(var(--secondary-foreground, 210 40% 98%))",
+          DEFAULT: "hsl(var(--secondary, 40 16% 90%))",
+          foreground: "hsl(var(--secondary-foreground, 220 13% 12%))",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted, 217 33% 14%))",
-          foreground: "hsl(var(--muted-foreground, 215 20% 65%))",
+          DEFAULT: "hsl(var(--muted, 40 16% 93%))",
+          foreground: "hsl(var(--muted-foreground, 220 9% 40%))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent, 173 80% 40%))",
-          foreground: "hsl(var(--accent-foreground, 222 47% 6%))",
+          DEFAULT: "hsl(var(--accent, 158 45% 93%))",
+          foreground: "hsl(var(--accent-foreground, 162 60% 22%))",
         },
         card: {
-          DEFAULT: "hsl(var(--card, 222 47% 9%))",
-          foreground: "hsl(var(--card-foreground, 210 40% 98%))",
+          DEFAULT: "hsl(var(--card, 0 0% 100%))",
+          foreground: "hsl(var(--card-foreground, 220 13% 10%))",
         },
         arc: {
-          500: '#22c55e',
-          600: '#16a34a',
+          500: '#059669',
+          600: '#047857',
           blue: '#2775CA',
           dark: '#0B0F17',
           card: '#131B2A',
