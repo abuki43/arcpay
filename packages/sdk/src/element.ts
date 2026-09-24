@@ -46,7 +46,7 @@ export class ArcPayButtonElement extends CustomElementBase {
     const item = this.getAttribute('item') || 'One-Time Purchase';
     const theme = this.getAttribute('theme') || 'emerald';
 
-    let bg = '#059669';
+    let bg = '#047857';
     let color = '#ffffff';
     let border = 'none';
 
@@ -58,8 +58,11 @@ export class ArcPayButtonElement extends CustomElementBase {
       border = '1px solid #e2e8f0';
     } else if (theme === 'minimal') {
       bg = 'transparent';
-      color = '#059669';
-      border = '1.5px solid #059669';
+      color = '#047857';
+      border = '1.5px solid #047857';
+    } else {
+      bg = '#047857';
+      color = '#ffffff';
     }
 
     this.shadow.innerHTML = `
@@ -129,23 +132,25 @@ export class ArcPayButtonElement extends CustomElementBase {
         }
       </style>
       <button class="arc-btn" id="pay-btn" type="button">
-        <span>⚡</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         <span>Pay $${amount} USDC</span>
       </button>
 
       <div class="arc-modal-backdrop" id="fallback-modal">
         <div class="arc-modal-card">
-          <button class="arc-modal-close" id="modal-close-btn">✕</button>
-          <div style="font-size: 32px; margin-bottom: 8px;">⚡</div>
+          <button class="arc-modal-close" id="modal-close-btn">&times;</button>
+          <div style="display:flex; justify-content:center; width: 100%; margin-bottom: 12px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="#047857" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
           <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">Pay with Arc Network</div>
-          <div style="font-size: 12px; color: #64748b; margin-bottom: 16px;">Scan with MetaMask or Mobile EVM Browser</div>
+          <div style="font-size: 12px; color: #64748b; margin-bottom: 16px;">Scan with MetaMask or a mobile EVM browser</div>
           
           <div style="display: flex; justify-content: center; margin-bottom: 16px;">
             <img id="qr-img" src="" alt="Scan QR" style="width: 160px; height: 160px; border-radius: 8px; border: 1px solid #e2e8f0;" />
           </div>
 
-          <a id="metamask-link" href="" target="_blank" style="display: block; width: 100%; background: #f97316; color: white; text-decoration: none; font-weight: 600; padding: 12px; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
-            🦊 Open in MetaMask Mobile
+          <a id="metamask-link" href="" target="_blank" style="display: block; width: 100%; background: #ffffff; color: #047857; border: 1.5px solid #047857; text-decoration: none; font-weight: 600; padding: 12px; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+            Open in MetaMask Mobile
           </a>
         </div>
       </div>
@@ -271,7 +276,7 @@ export class ArcPayButtonElement extends CustomElementBase {
         if (rErr.message?.includes('reverted')) throw rErr;
       }
 
-      if (btn) btn.innerText = 'Paid! 🎉';
+      if (btn) btn.innerText = 'Paid!';
 
       this.dispatchEvent(new CustomEvent('arcpay:success', {
         detail: {

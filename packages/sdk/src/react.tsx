@@ -34,6 +34,18 @@ import {
 // -----------------------------------------------------------------------------
 // Helper: Arc Chain Hex & Parameters for Injected Wallets
 // -----------------------------------------------------------------------------
+const LightningGlyph = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden
+  >
+    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+  </svg>
+);
+
 function getChainParams(chainId: number) {
   const isTestnet = chainId === 5042002;
   const chain = isTestnet ? arcTestnet : arcMainnet;
@@ -278,15 +290,17 @@ export function CheckoutModal({
         {/* Header */}
         <div style={modalHeaderStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={logoIconStyle}>⚡</div>
+            <div style={logoIconStyle}>
+              <LightningGlyph size={18} />
+            </div>
             <div>
               <div style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a' }}>ArcPay Checkout</div>
               <div style={{ fontSize: '12px', color: '#64748b' }}>
-                {chainId === 5042 ? 'Arc Mainnet' : 'Arc Testnet'} • Native USDC
+                {chainId === 5042 ? 'Arc Mainnet' : 'Arc Testnet'} - Native USDC
               </div>
             </div>
           </div>
-          <button style={closeBtnStyle} onClick={onClose} aria-label="Close">✕</button>
+          <button style={closeBtnStyle} onClick={onClose} aria-label="Close">&times;</button>
         </div>
 
         {/* Order Summary Box */}
@@ -301,27 +315,41 @@ export function CheckoutModal({
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '20px', fontWeight: '800', color: '#059669' }}>
+              <div style={{ fontSize: '20px', fontWeight: '800', color: '#047857' }}>
                 ${formatUsdc(grossAmount)} <span style={{ fontSize: '13px', fontWeight: '600' }}>USDC</span>
               </div>
-              <div style={{ fontSize: '11px', color: '#10b981', fontWeight: '500' }}>
-                0.40% Protocol Fee (${feeInfo.formattedFee})
+              <div style={{ fontSize: '11px', color: '#047857', fontWeight: '500' }}>
+                0.40% protocol fee (${feeInfo.formattedFee})
               </div>
             </div>
           </div>
 
-          <div style={noticeBadgeStyle}>
-            <span style={{ marginRight: '4px' }}>✨</span>
-            1-Click Native Gas — Zero ERC-20 Approvals Needed
+          <div style={{ ...noticeBadgeStyle, gap: '6px' }}>
+            <LightningGlyph size={12} />
+            <span>1-click native gas - zero ERC-20 approvals</span>
           </div>
         </div>
 
         {/* Dynamic Body State */}
         {isSuccess && receipt ? (
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div style={{ fontSize: '40px', marginBottom: '8px' }}>🎉</div>
-            <div style={{ fontSize: '17px', fontWeight: '700', color: '#059669', marginBottom: '4px' }}>
-              Payment Settled!
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
+                backgroundColor: '#ecfdf5',
+                color: '#047857',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 12px',
+              }}
+            >
+              <LightningGlyph size={26} />
+            </div>
+            <div style={{ fontSize: '17px', fontWeight: '700', color: '#047857', marginBottom: '4px' }}>
+              Payment settled
             </div>
             <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>
               Confirmed in ~600ms on Arc Layer-1 {receipt.blockNumber > 0n ? `(Block #${receipt.blockNumber})` : ''}
@@ -334,9 +362,9 @@ export function CheckoutModal({
                   href={getExplorerTxUrl(chainId, receipt.txHash)}
                   target="_blank"
                   rel="noreferrer"
-                  style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '600' }}
+                  style={{ color: '#047857', textDecoration: 'none', fontWeight: '600' }}
                 >
-                  {receipt.txHash.slice(0, 10)}...{receipt.txHash.slice(-8)} ↗
+                  {receipt.txHash.slice(0, 10)}...{receipt.txHash.slice(-8)} &nearr;
                 </a>
               </div>
               <div style={receiptRowStyle}>
@@ -347,7 +375,7 @@ export function CheckoutModal({
               </div>
               <div style={receiptRowStyle}>
                 <span style={{ color: '#64748b' }}>Settled Amount</span>
-                <span style={{ fontWeight: '700', color: '#059669' }}>${formatUsdc(receipt.amount)} USDC</span>
+                <span style={{ fontWeight: '700', color: '#047857' }}>${formatUsdc(receipt.amount)} USDC</span>
               </div>
             </div>
 
@@ -359,7 +387,14 @@ export function CheckoutModal({
           <div>
             {error && (
               <div style={errorBannerStyle}>
-                ⚠️ {error.message}
+                <span style={{ flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <path d="M12 9v4" />
+                    <path d="M12 17h.01" />
+                  </svg>
+                </span>
+                <span>{error.message}</span>
               </div>
             )}
 
@@ -374,7 +409,7 @@ export function CheckoutModal({
                 onClick={handlePayClick}
               >
                 {isConnecting
-                  ? 'Connecting Wallet...'
+                  ? 'Connecting wallet...'
                   : isPaying
                   ? 'Confirming on Arc (~600ms)...'
                   : `Pay $${formatUsdc(grossAmount)} USDC`}
@@ -382,7 +417,7 @@ export function CheckoutModal({
             ) : (
               <div style={{ textAlign: 'center', padding: '10px 0' }}>
                 <div style={{ fontSize: '13px', color: '#475569', marginBottom: '12px' }}>
-                  Scan with MetaMask or Mobile EVM Browser:
+                  Scan with MetaMask or a mobile EVM browser:
                 </div>
                 <div style={qrBoxStyle}>
                   <img
@@ -397,13 +432,13 @@ export function CheckoutModal({
                   target="_blank"
                   rel="noreferrer"
                 >
-                  🦊 Open in MetaMask Mobile
+                  Open in MetaMask Mobile
                 </a>
               </div>
             )}
 
             <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '11px', color: '#94a3b8' }}>
-              Secured by ArcPaymentGateway • Non-Custodial
+              Secured by ArcPaymentGateway - Non-custodial
             </div>
           </div>
         )}
@@ -482,12 +517,12 @@ export function ArcPayButton({
       base.border = '1px solid #e2e8f0';
     } else if (theme === 'minimal') {
       base.backgroundColor = 'transparent';
-      base.color = '#059669';
-      base.border = '1.5px solid #059669';
+      base.color = '#047857';
+      base.border = '1.5px solid #047857';
       base.boxShadow = 'none';
     } else {
       // Emerald brand
-      base.backgroundColor = '#059669';
+      base.backgroundColor = '#047857';
       base.color = '#ffffff';
     }
 
@@ -515,7 +550,7 @@ export function ArcPayButton({
         style={buttonStyle}
         onClick={() => setIsOpen(true)}
       >
-        <span style={{ fontSize: '1.1em' }}>⚡</span>
+        <LightningGlyph size={14} />
         <span>{defaultText}</span>
       </button>
 
@@ -574,13 +609,13 @@ const modalHeaderStyle: React.CSSProperties = {
 const logoIconStyle: React.CSSProperties = {
   width: '32px',
   height: '32px',
-  borderRadius: '8px',
+  borderRadius: '10px',
   backgroundColor: '#ecfdf5',
-  color: '#059669',
+  color: '#047857',
+  border: '1px solid #a7f3d0',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  fontSize: '18px',
 };
 
 const closeBtnStyle: React.CSSProperties = {
@@ -616,7 +651,7 @@ const noticeBadgeStyle: React.CSSProperties = {
 
 const primaryBtnStyle: React.CSSProperties = {
   width: '100%',
-  backgroundColor: '#059669',
+  backgroundColor: '#047857',
   color: '#ffffff',
   fontWeight: '700',
   fontSize: '15px',
@@ -628,6 +663,9 @@ const primaryBtnStyle: React.CSSProperties = {
 };
 
 const errorBannerStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '8px',
   backgroundColor: '#fef2f2',
   border: '1px solid #fecaca',
   color: '#991b1b',
@@ -650,13 +688,15 @@ const deepLinkBtnStyle: React.CSSProperties = {
   display: 'block',
   width: '100%',
   textAlign: 'center',
-  backgroundColor: '#f97316',
-  color: '#ffffff',
+  backgroundColor: '#ffffff',
+  color: '#047857',
+  border: '1.5px solid #047857',
   textDecoration: 'none',
   fontWeight: '600',
   fontSize: '13px',
   padding: '10px',
   borderRadius: '8px',
+  boxSizing: 'border-box',
 };
 
 const receiptBoxStyle: React.CSSProperties = {
