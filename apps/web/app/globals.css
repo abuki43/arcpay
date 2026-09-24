@@ -2,21 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Sentient';
+  src: url('/Sentient-Extralight.woff') format('woff');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sentient';
+  src: url('/Sentient-LightItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
-  --background: 222 47% 6%;
+  --background: 222 47% 3%;
   --foreground: 210 40% 98%;
-  --card: 222 47% 9%;
+  --card: 222 47% 6%;
   --card-foreground: 210 40% 98%;
-  --primary: 142 71% 45%;
-  --primary-foreground: 222 47% 6%;
-  --border: 217 33% 15%;
-  --input: 217 33% 15%;
-  --ring: 142 71% 45%;
+  --primary: 152 69% 45%;
+  --primary-foreground: 222 47% 4%;
+  --border: 217 33% 18%;
+  --input: 217 33% 18%;
+  --ring: 152 69% 45%;
   --radius: 0.75rem;
 }
 
+.font-sentient {
+  font-family: 'Sentient', serif;
+}
+
 body {
-  background-color: #0b0f17;
+  background-color: #050810;
   color: #f8fafc;
   min-height: 100vh;
+}
+
+#webgl {
+  top: 0;
+  left: 0;
+  position: fixed;
+  height: 100svh;
+  width: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#webgl canvas {
+  width: 100% !important;
+  height: 100% !important;
 }

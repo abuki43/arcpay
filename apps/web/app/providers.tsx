@@ -1,15 +1,24 @@
 'use client';
 
-import React from 'react';
-import { WagmiProvider } from 'wagmi';
+import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { config } from '@/lib/wagmi';
-
-const queryClient = new QueryClient();
+import { WagmiProvider } from 'wagmi';
+import { wagmiConfig } from '@/lib/wagmi';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnWindowFocus: false,
+          },
+        },
+      })
+  );
+
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         {children}
       </QueryClientProvider>
