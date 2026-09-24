@@ -37,6 +37,7 @@ export class DofPointsMaterial extends THREE.ShaderMaterial {
       varying vec3 vWorldPosition;
       varying vec3 vInitialPosition;
       uniform float uTransition;
+      uniform vec3 uColor;
 
       ${periodicNoiseGLSL}
 
@@ -74,14 +75,14 @@ export class DofPointsMaterial extends THREE.ShaderMaterial {
         
         // Create smooth curve: linear for low values, exponential for high values
         // Using pow(x, n) where n > 1 creates a curve that's nearly linear at low end, exponential at high end
-        float smoothCurve = pow(normalizedSparkle, 4.0); // High exponent = dramatic high-end emphasis
+        float smoothCurve = pow(normalizedSparkle, 3.0); // High exponent = dramatic high-end emphasis
         
         // Blend between linear (for low values) and exponential (for high values)
         float blendFactor = normalizedSparkle * normalizedSparkle; // Smooth transition weight
         float finalBrightness = mix(normalizedSparkle, smoothCurve, blendFactor);
         
-        // Map to brightness range [0.7, 2.0] - conservative range with exponential peaks
-        return 0.7 + finalBrightness * 1.3;
+        // Map to brightness range [0.6, 1.7] - tone down peaks for light backgrounds
+        return 0.6 + finalBrightness * 1.1;
       }
 
       float sdCircle(vec2 p, float r) {
@@ -115,7 +116,9 @@ export class DofPointsMaterial extends THREE.ShaderMaterial {
         
         float alpha = (1.04 - clamp(vDistance, 0.0, 1.0)) * clamp(smoothstep(-0.5, 0.25, vPosY), 0.0, 1.0) * uOpacity * revealMask * uRevealProgress * sparkleBrightness;
 
-        gl_FragColor = vec4(vec3(1.0), mix(alpha, sparkleBrightness - 1.1, uTransition));
+        // Tint particles toward a soft emerald ink for light backgrounds
+        float brightness = 0.7 + sparkleBrightness * 0.3;
+        gl_FragColor = vec4(uColor * brightness, mix(alpha, sparkleBrightness - 1.1, uTransition));
       }`,
       uniforms: {
         positions: { value: null },
@@ -128,7 +131,8 @@ export class DofPointsMaterial extends THREE.ShaderMaterial {
         uPointSize: { value: 2.0 },
         uOpacity: { value: 1.0 },
         uRevealFactor: { value: 0.0 },
-        uRevealProgress: { value: 0.0 }
+        uRevealProgress: { value: 0.0 },
+        uColor: { value: new THREE.Color('#0E7A54') }
       },
       transparent: true,
       // blending: THREE.AdditiveBlending,

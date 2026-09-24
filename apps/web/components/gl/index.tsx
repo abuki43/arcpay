@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Effects } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Particles } from './particles';
@@ -8,25 +8,41 @@ import { VignetteShader } from './shaders/vignetteShader';
 
 interface GLProps {
   hovering?: boolean;
+  targetRef?: React.RefObject<HTMLElement | null>;
 }
 
-export const GL = ({ hovering = false }: GLProps) => {
+export const GL = ({ hovering = false, targetRef }: GLProps) => {
   const speed = 1.0;
   const focus = 3.8;
-  const aperture = 1.79;
+  const aperture = 2.2;
   const size = 512;
   const noiseScale = 0.6;
-  const noiseIntensity = 0.52;
+  const noiseIntensity = 0.42;
   const timeScale = 1.0;
-  const pointSize = 10.0;
-  const opacity = 0.85;
+  const pointSize = 5.0;
+  const opacity = 0.4;
   const planeScale = 10.0;
-  const vignetteDarkness = 1.5;
-  const vignetteOffset = 0.4;
+  const vignetteDarkness = 1.0;
+  const vignetteOffset = 0.45;
+
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    const el = targetRef?.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setPaused(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [targetRef]);
 
   return (
     <div id="webgl">
       <Canvas
+        frameloop={paused ? 'never' : 'always'}
+        dpr={[1, 2]}
         camera={{
           position: [1.2629783123314589, 2.664606471394044, -1.8178993743288914],
           fov: 50,
@@ -35,7 +51,7 @@ export const GL = ({ hovering = false }: GLProps) => {
         }}
         gl={{ antialias: true, alpha: true }}
       >
-        <color attach="background" args={['#050810']} />
+        <color attach="background" args={['#F6F4EF']} />
         <Particles
           speed={speed}
           aperture={aperture}
