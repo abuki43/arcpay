@@ -6,33 +6,35 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { createPayLinkUrl, calculateArcFee, shortenAddress } from '@arcpay/sdk';
+import { Eyebrow } from '@/components/eyebrow';
+import {
+  createPayLinkUrl,
+  calculateArcFee,
+  shortenAddress,
+} from '@arcpay/sdk';
 import {
   Zap,
   Copy,
   Check,
-  QrCode,
   ExternalLink,
-  Sparkles,
   DollarSign,
-  User,
-  FileText,
   Share2,
-  Percent,
 } from 'lucide-react';
 
 export default function PayLinkStudioPage() {
   const { address } = useAccount();
 
-  const [merchant, setMerchant] = useState<string>('0xf46b169915c5820E9FcdcD79F5AA5B246E32220D');
+  const [merchant, setMerchant] = useState<string>(
+    '0xf46b169915c5820E9FcdcD79F5AA5B246E32220D'
+  );
   const [amount, setAmount] = useState<string>('29.00');
   const [item, setItem] = useState<string>('Freelance Design Sprint');
-  const [description, setDescription] = useState<string>('Final vector deliverables + Figma license');
+  const [description, setDescription] = useState<string>(
+    'Final vector deliverables + Figma license'
+  );
   const [copied, setCopied] = useState<boolean>(false);
   const [origin, setOrigin] = useState<string>('https://arcpay.network');
 
-  // Auto-populate merchant if wallet connects
   useEffect(() => {
     if (address) {
       setMerchant(address);
@@ -62,44 +64,42 @@ export default function PayLinkStudioPage() {
   };
 
   return (
-    <div className="py-12 bg-[#070a12] min-h-[85vh] relative overflow-hidden">
-      {/* Glow */}
-      <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-emerald-500/5 blur-[160px] rounded-full pointer-events-none"></div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div className="pt-28 pb-16 min-h-[85vh] relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="max-w-3xl mb-12">
-          <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs mb-3">
-            NO-CODE STUDIO
-          </Badge>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Create a 1-Click <span className="text-emerald-400">PayLink</span>
+          <Eyebrow className="mb-4">No-code studio</Eyebrow>
+          <h1 className="text-3xl sm:text-5xl font-sentient text-foreground tracking-tight">
+            Create a 1-click <i className="font-light italic text-primary">PayLink</i>
           </h1>
-          <p className="text-slate-400 text-sm sm:text-base mt-2">
-            Generate shareable payment links and QR codes for digital products, consulting invoices, and client deposits.
+          <p className="text-muted-foreground text-sm sm:text-base mt-3 leading-relaxed">
+            Generate shareable payment links and QR codes for digital products,
+            consulting invoices, and client deposits.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Form: Builder */}
-          <div className="lg:col-span-7 bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              <span>Payment Details</span>
+          <div className="lg:col-span-7 rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <h2 className="text-lg font-sentient text-foreground mb-6 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-primary" />
+              <span>Payment details</span>
             </h2>
 
             <div className="space-y-5">
               {/* Field 1: Merchant Wallet */}
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Recipient Merchant Wallet</label>
+                  <label className="text-xs font-semibold text-foreground/80">
+                    Recipient merchant wallet
+                  </label>
                   {address && (
                     <button
                       type="button"
                       onClick={() => setMerchant(address)}
-                      className="text-[11px] text-emerald-400 hover:underline"
+                      className="text-[11px] text-primary hover:underline"
                     >
-                      Use Connected ({shortenAddress(address)})
+                      Use connected ({shortenAddress(address)})
                     </button>
                   )}
                 </div>
@@ -108,15 +108,19 @@ export default function PayLinkStudioPage() {
                   placeholder="0x..."
                   value={merchant}
                   onChange={(e) => setMerchant(e.target.value)}
-                  className="bg-slate-950/80 border-white/10 font-mono text-xs text-white"
+                  className="font-mono text-xs"
                 />
               </div>
 
-              {/* Field 2: Amount & Currency */}
+              {/* Field 2: Amount */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">Amount (USDC)</label>
+                <label className="text-xs font-semibold text-foreground/80 block mb-1.5">
+                  Amount (USDC)
+                </label>
                 <div className="relative">
-                  <DollarSign className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/60 font-mono text-xs">
+                    $
+                  </span>
                   <Input
                     type="number"
                     step="0.01"
@@ -124,56 +128,60 @@ export default function PayLinkStudioPage() {
                     placeholder="29.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="bg-slate-950/80 border-white/10 font-mono text-sm pl-9 text-white font-bold"
+                    className="font-mono text-sm pl-8 font-bold"
                   />
                 </div>
-                <div className="flex justify-between text-[11px] text-slate-400 mt-1.5 px-1">
-                  <span>Protocol Fee (0.4%): ${feeBreakdown.formattedFee}</span>
-                  <span className="text-emerald-400 font-semibold">
-                    Net to You: ${feeBreakdown.formattedNet} USDC
+                <div className="flex justify-between text-[11px] text-muted-foreground mt-1.5 px-1 font-mono tabular-nums">
+                  <span>Protocol fee (0.4%): ${feeBreakdown.formattedFee}</span>
+                  <span className="text-primary font-semibold">
+                    Net to you: ${feeBreakdown.formattedNet} USDC
                   </span>
                 </div>
               </div>
 
-              {/* Field 3: Item Title */}
+              {/* Field 3: Item */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">Item / Service Name</label>
+                <label className="text-xs font-semibold text-foreground/80 block mb-1.5">
+                  Item / service name
+                </label>
                 <Input
                   type="text"
                   placeholder="e.g. Design Retainer, API Pro Plan"
                   value={item}
                   onChange={(e) => setItem(e.target.value)}
-                  className="bg-slate-950/80 border-white/10 text-xs text-white"
+                  className="text-xs"
                 />
               </div>
 
-              {/* Field 4: Description / Metadata */}
+              {/* Field 4: Description */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Order Metadata / Description (Optional)
+                <label className="text-xs font-semibold text-foreground/80 block mb-1.5">
+                  Order metadata / description (optional)
                 </label>
                 <Input
                   type="text"
                   placeholder="e.g. Invoice #1042, Client: Acme Corp"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="bg-slate-950/80 border-white/10 text-xs text-white"
+                  className="text-xs"
                 />
               </div>
             </div>
 
             {/* Generated Link Output */}
-            <div className="mt-8 pt-6 border-t border-white/10">
-              <div className="text-xs font-semibold text-slate-300 mb-2">Shareable 1-Click PayLink</div>
+            <div className="mt-8 pt-6 border-t border-border">
+              <div className="text-xs font-semibold text-foreground/80 mb-2">
+                Shareable 1-click PayLink
+              </div>
               <div className="flex gap-2">
                 <Input
                   readOnly
                   value={payLinkUrl}
-                  className="bg-slate-950 border-emerald-500/30 text-emerald-400 font-mono text-xs select-all"
+                  className="font-mono text-xs text-primary select-all"
                 />
                 <Button
                   onClick={handleCopy}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 flex items-center gap-1.5"
+                  className="px-4 flex items-center gap-1.5 shrink-0"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -182,54 +190,83 @@ export default function PayLinkStudioPage() {
             </div>
           </div>
 
-          {/* Right Live Customer Preview Card */}
-          <div className="lg:col-span-5 bg-gradient-to-b from-slate-900/90 to-slate-950 border border-emerald-500/30 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl sticky top-24">
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                Customer Checkout Preview
+          {/* Right: Perforated Invoice Preview */}
+          <div className="lg:col-span-5 sticky top-28">
+            <div className="flex justify-between items-center mb-5">
+              <span className="text-xs font-bold uppercase tracking-[0.14em] text-foreground/70">
+                Customer preview
               </span>
-              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px]">
+              <Badge variant="emerald" className="text-[10px]">
                 LIVE
               </Badge>
             </div>
 
-            {/* Customer Facing Card */}
-            <div className="rounded-xl bg-slate-950 border border-white/10 p-5 mb-6 text-center">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-3">
-                <Zap className="w-6 h-6 fill-emerald-400" />
+            <div className="rounded-2xl bg-white border border-border shadow-[0_24px_70px_rgba(14,122,84,0.10)] rotate-[0.5deg] transition-transform duration-300 hover:rotate-0">
+              {/* Invoice header */}
+              <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-dashed border-emerald-700/25">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                    <Zap className="w-4 h-4 fill-white" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      ArcPay invoice
+                    </div>
+                    <div className="text-sm font-sentient text-foreground leading-tight">
+                      ArcPay Protocol
+                    </div>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-mono">
+                  #PAY-{Date.now().toString().slice(-5)}
+                </Badge>
               </div>
-              <h3 className="font-bold text-lg text-white mb-1">{item || 'Purchase Item'}</h3>
-              <p className="text-xs text-slate-400 mb-4">{description || '1-Click payment via Arc Network'}</p>
 
-              <div className="text-3xl font-extrabold text-emerald-400 font-mono mb-1">
-                ${numAmount.toFixed(2)} <span className="text-xs font-sans text-slate-400 font-normal">USDC</span>
-              </div>
-              <div className="text-[11px] text-slate-500 mb-6">Settles to: {shortenAddress(merchant)}</div>
+              <div className="px-6 py-5 text-center">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-1">
+                  Amount due
+                </div>
+                <div className="font-mono text-4xl font-extrabold text-foreground tabular-nums mb-1">
+                  ${numAmount.toFixed(2)}{' '}
+                  <span className="text-sm font-sans font-normal text-primary">USDC</span>
+                </div>
+                <h3 className="font-sentient text-base text-foreground mb-1">
+                  {item || 'Purchase item'}
+                </h3>
+                <p className="text-xs text-muted-foreground mb-5">
+                  {description || '1-click payment via Arc Network'}
+                </p>
 
-              {/* QR Code */}
-              <div className="bg-white p-3 rounded-xl inline-block shadow-lg mb-6">
-                <QRCodeSVG value={payLinkUrl} size={130} level="M" />
-              </div>
+                <div className="bg-white rounded-xl inline-block border border-border p-3 mb-4">
+                  <QRCodeSVG value={payLinkUrl} size={120} level="M" />
+                </div>
 
-              <div className="text-[11px] text-slate-400">
-                Scan with mobile wallet or open link directly
+                <div className="text-[11px] text-muted-foreground mb-5">
+                  Settles to: {shortenAddress(merchant)}
+                </div>
+
+                {/* Perforation seam */}
+                <div className="relative mb-5">
+                  <div className="border-t border-dashed border-emerald-700/25" />
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-background" aria-hidden />
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
+                  <Share2 className="w-3.5 h-3.5 text-primary" />
+                  Scan with mobile wallet or open the link directly
+                </div>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="mt-6 space-y-3">
               <a href={payLinkUrl} target="_blank" rel="noreferrer" className="block">
-                <Button className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-5 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
-                  <span>Test Hosted Checkout</span>
+                <Button className="w-full py-6 flex items-center justify-center gap-2">
+                  <span>Test hosted checkout</span>
                   <ExternalLink className="w-4 h-4" />
                 </Button>
               </a>
-
-              <Button
-                variant="outline"
-                onClick={handleCopy}
-                className="w-full bg-slate-900 border-white/10 hover:bg-slate-800 text-slate-300 text-xs py-4"
-              >
-                {copied ? 'Link Copied to Clipboard!' : 'Copy Shareable PayLink'}
+              <Button variant="outline" onClick={handleCopy} className="w-full py-4 text-xs">
+                {copied ? 'Link copied to clipboard' : 'Copy shareable PayLink'}
               </Button>
             </div>
           </div>
