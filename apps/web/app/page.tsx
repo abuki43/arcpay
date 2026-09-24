@@ -1,107 +1,108 @@
 'use client';
 
 import React from 'react';
-import { Hero } from '@/components/hero';
-import { ComparisonSection } from '@/components/comparison';
-import { StorefrontDemo } from '@/components/storefront-demo';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import {
-  Zap,
-  ShieldCheck,
-  Cpu,
-  Layers,
-} from 'lucide-react';
+import { Hero } from '@/components/hero';
+import { StorefrontDemo } from '@/components/storefront-demo';
+import { ComparisonSection } from '@/components/comparison';
+import { BentoFeatures } from '@/components/bento-features';
+import { Eyebrow } from '@/components/eyebrow';
+import { Reveal } from '@/components/motion';
+import { Button } from '@/components/ui/button';
+import { ArrowUpRight } from 'lucide-react';
 
-function ArchitectureSection() {
+function FlowSection() {
   const steps = [
     {
       step: '01',
-      title: 'Customer Clicks <ArcPayButton />',
-      desc: 'No token approvals required. The checkout modal dynamically connects the customer wallet and formats the single native USDC gas transaction.',
-      icon: Zap,
+      title: 'Customer clicks checkout',
+      desc: 'No token approvals. The modal connects the wallet and formats a single native USDC gas transaction.',
     },
     {
       step: '02',
-      title: '~600ms Deterministic Settlement',
-      desc: 'The transaction settles directly on Arc Layer-1 via ArcPaymentGateway.sol with cryptographically irreversible sub-second finality.',
-      icon: Cpu,
+      title: '~600ms deterministic settlement',
+      desc: 'The payment settles on Arc Layer-1 via ArcPaymentGateway.sol with cryptographically irreversible sub-second finality.',
     },
     {
       step: '03',
-      title: '99.60% Direct to Merchant Wallet',
-      desc: '0.40% protocol fee is routed to the ArcPay Treasury while 99.60% is instantly deposited directly into the merchant wallet with zero custody.',
-      icon: ShieldCheck,
+      title: '99.60% to merchant wallet',
+      desc: '0.40% routes to the ArcPay treasury; the rest is deposited directly into the merchant wallet. Zero custody.',
     },
     {
       step: '04',
-      title: 'Real-Time Event & Webhook Verification',
-      desc: 'Client-side Wagmi streams update the merchant dashboard live, while backend services verify payment receipts in <50ms via verifyArcPayment().',
-      icon: Layers,
+      title: 'Verify with one RPC call',
+      desc: 'Backends call verifyArcPayment() for a direct cryptographic check. Client-side streams update the dashboard live.',
     },
   ];
 
   return (
-    <section className="py-24 bg-[#050810] border-t border-white/10 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 mb-4 px-3 py-1">
-            HOW IT WORKS
-          </Badge>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Non-Custodial, <span className="text-emerald-400">Sub-Second Architecture</span>
+    <section className="py-24 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <Reveal className="max-w-2xl mx-auto text-center mb-14">
+          <Eyebrow className="justify-center mb-6">How it works</Eyebrow>
+          <h2 className="text-4xl sm:text-5xl font-sentient text-foreground tracking-tight">
+            Click to wallet in <i className="font-light italic text-primary">four steps</i>
           </h2>
-          <p className="text-slate-400 mt-4 text-base sm:text-lg">
-            Built from the ground up to leverage Circle’s Arc Layer-1 capabilities.
-          </p>
-        </div>
+        </Reveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {steps.map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={idx}
-                className="bg-slate-900/50 border border-white/10 rounded-2xl p-6 relative hover:border-emerald-500/30 transition-all backdrop-blur-md group"
-              >
-                <div className="text-xs font-mono font-bold text-emerald-400 mb-4 flex items-center justify-between">
-                  <span>STEP {item.step}</span>
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon className="w-4 h-4 text-emerald-400" />
-                  </div>
-                </div>
-                <h3 className="text-base font-bold text-white mb-2 leading-snug">{item.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
+        <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map((s, i) => (
+            <Reveal key={s.step} delay={i * 0.06} className="h-full">
+              <li className="relative h-full px-6 py-8 lg:border-l lg:border-border first:lg:border-l-0">
+                <span className="block font-mono text-[11px] font-bold text-primary mb-5 tracking-widest">
+                  {s.step}
+                </span>
+                <h3 className="font-sentient text-lg text-foreground mb-2.5 leading-snug">
+                  {s.title}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {s.desc}
+                </p>
+              </li>
+            </Reveal>
+          ))}
+        </ol>
+
+        {/* Conic CTA banner */}
+        <Reveal className="mt-12">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-white/70 px-8 py-14 sm:px-14 text-center">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 [background:conic-gradient(from_90deg_at_50%_-10%,rgba(16,185,129,0.12),transparent_30%,rgba(5,150,105,0.10),transparent_65%,rgba(16,185,129,0.12))]"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-40 [background:radial-gradient(60%_120%_at_50%_130%,rgba(14,122,84,0.16),transparent_70%)]"
+            />
+
+            <div className="relative">
+              <h3 className="text-3xl sm:text-4xl font-sentient text-foreground mb-4">
+                Ready to accept payments on Arc?
+              </h3>
+              <p className="text-muted-foreground text-[15px] max-w-xl mx-auto mb-8 leading-relaxed">
+                Install <code className="font-mono text-xs text-primary">@arcpay/sdk</code> or
+                generate a standalone hosted PayLink in seconds - zero code
+                required.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link href="/create">
+                  <Button
+                    size="lg"
+                    className="gap-2 text-[15px] [background:conic-gradient(from_180deg_at_50%_120%,#065F46_0deg,#0E7A54_120deg,#10B981_200deg,#065F46_360deg)]"
+                  >
+                    Create a PayLink now
+                    <ArrowUpRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link href="/docs">
+                  <Button size="lg" variant="outline">
+                    Read developer documentation
+                  </Button>
+                </Link>
               </div>
-            );
-          })}
-        </div>
-
-        {/* Call to Action Banner */}
-        <div className="rounded-3xl bg-gradient-to-r from-emerald-950/60 via-slate-900/80 to-slate-950 border border-emerald-500/30 p-8 sm:p-12 text-center relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none"></div>
-
-          <h3 className="text-2xl sm:text-4xl font-extrabold text-white mb-4">
-            Ready to accept payments on Arc?
-          </h3>
-          <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto mb-8">
-            Install `@arcpay/sdk` or generate a standalone hosted PayLink in seconds with zero coding required.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/create">
-              <Button size="lg" className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-8 py-6 rounded-xl shadow-lg shadow-emerald-500/20">
-                Create a PayLink Now
-              </Button>
-            </Link>
-            <Link href="/docs">
-              <Button size="lg" variant="outline" className="bg-slate-900/80 border-white/10 text-white hover:bg-slate-800 px-8 py-6 rounded-xl">
-                Read Developer Documentation
-              </Button>
-            </Link>
+            </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -111,9 +112,10 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <BentoFeatures />
       <StorefrontDemo />
       <ComparisonSection />
-      <ArchitectureSection />
+      <FlowSection />
     </>
   );
 }

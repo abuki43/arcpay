@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { ArcPayButton } from '@arcpay/sdk/react';
 import confetti from 'canvas-confetti';
-import { Pill } from './pill';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
-import { Check, Copy, Zap, Code, ShieldCheck, Sparkles, Terminal, ExternalLink } from 'lucide-react';
+import { Eyebrow } from './eyebrow';
+import { Reveal } from './motion';
+import { Check, Zap, ExternalLink, ArrowUpRight } from 'lucide-react';
 
 const DEMO_MERCHANT = '0xf46b169915c5820E9FcdcD79F5AA5B246E32220D';
 
 export function StorefrontDemo() {
-  const [copiedTab, setCopiedTab] = useState<string | null>(null);
   const [lastReceipt, setLastReceipt] = useState<any>(null);
 
   const handlePaymentSuccess = (receipt: any) => {
@@ -19,394 +19,256 @@ export function StorefrontDemo() {
       particleCount: 90,
       spread: 75,
       origin: { y: 0.6 },
-      colors: ['#10b981', '#059669', '#3b82f6', '#34d399'],
+      colors: ['#0E7A54', '#10B981', '#065F46', '#34D399'],
     });
   };
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedTab(id);
-    setTimeout(() => setCopiedTab(null), 2000);
-  };
-
-  const reactCodeSnippet = `import { ArcPayButton } from '@arcpay/sdk/react';
-
-export function PricingCard() {
   return (
-    <ArcPayButton
-      merchant="${DEMO_MERCHANT}"
-      amount={29.00}
-      item="CloudAI Pro Plan"
-      metadata={{ userId: "usr_4021", plan: "pro_monthly" }}
-      theme="emerald"
-      onSuccess={(receipt) => {
-        console.log("Settled on Arc in ~600ms:", receipt.txHash);
-        // Provision SaaS access immediately
-      }}
-      onError={(err) => console.error("Payment failed:", err)}
-    />
-  );
-}`;
-
-  const webComponentSnippet = `<!-- Add ArcPay script once to your <head> or HTML -->
-<script type="module" src="https://unpkg.com/@arcpay/sdk/dist/element.js"></script>
-
-<!-- Drop in the web component anywhere (Webflow, Shopify, WordPress) -->
-<arc-pay-button
-  merchant="${DEMO_MERCHANT}"
-  amount="29.00"
-  item="CloudAI Pro Plan"
-  theme="emerald"
-  metadata='{"plan":"pro_monthly"}'
-></arc-pay-button>
-
-<script>
-  document.querySelector('arc-pay-button').addEventListener('arcpay:success', (e) => {
-    console.log('Payment Settled:', e.detail.txHash);
-  });
-</script>`;
-
-  const hookSnippet = `import { useCheckout } from '@arcpay/sdk/react';
-
-export function CustomCheckout() {
-  const { checkout, isPaying, isSuccess, receipt } = useCheckout();
-
-  const handlePay = async () => {
-    const res = await checkout({
-      merchant: "${DEMO_MERCHANT}",
-      amount: 29.00,
-      item: "Custom Bespoke SaaS Tier",
-    });
-    console.log("Receipt:", res);
-  };
-
-  return (
-    <button onClick={handlePay} disabled={isPaying}>
-      {isPaying ? "Settling on Arc..." : "Pay $29 USDC"}
-    </button>
-  );
-}`;
-
-  const serverVerificationSnippet = `// Next.js App Router: app/api/verify-payment/route.ts
-import { NextResponse } from 'next/server';
-import { verifyArcPayment } from '@arcpay/sdk/server';
-
-export async function POST(req: Request) {
-  const { orderId } = await req.json();
-
-  // Cryptographic on-chain verification in <50ms
-  const result = await verifyArcPayment({
-    orderId,
-    merchant: "${DEMO_MERCHANT}",
-    expectedAmount: 29.00,
-    maxAgeSeconds: 3600, // Reject payments older than 1 hour
-  });
-
-  if (!result.isValid) {
-    return NextResponse.json({ error: result.error }, { status: 400 });
-  }
-
-  // Idempotently activate SaaS subscription
-  await activateUserPlan(result.metadata.userId, "pro");
-
-  return NextResponse.json({
-    success: true,
-    txHash: result.txHash,
-    settledAmount: result.formattedAmount,
-  });
-}`;
-
-  return (
-    <section id="demo" className="py-24 bg-[#050810] border-t border-white/10 relative overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-emerald-500/5 blur-[160px] rounded-full pointer-events-none"></div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <Pill className="mb-4">[ LIVE STOREFRONT DEMO ]</Pill>
-          <h2 className="text-4xl sm:text-5xl font-sentient text-white tracking-tight">
-            Try the <i className="font-light italic text-emerald-400">1-Click</i> Checkout Flow
+    <section id="demo" className="py-24 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <Reveal className="text-center max-w-3xl mx-auto mb-14">
+          <Eyebrow className="justify-center mb-6">Live storefront</Eyebrow>
+          <h2 className="text-4xl sm:text-5xl font-sentient text-foreground tracking-tight">
+            Try the <i className="font-light italic text-primary">1-click</i>{' '}
+            checkout flow
           </h2>
-          <p className="font-mono text-xs sm:text-sm text-slate-400 mt-4 max-w-2xl mx-auto">
-            Click any plan below to trigger the live `@arcpay/sdk` checkout modal. Pay with Circle Faucet USDC on Arc Testnet in ~600ms.
+          <p className="text-muted-foreground mt-4 text-[15px] text-balance max-w-2xl mx-auto leading-relaxed">
+            Click any plan to trigger the live{' '}
+            <code className="font-mono text-xs text-primary">@arcpay/sdk</code>{' '}
+            checkout modal. Pay with Circle Faucet USDC on Arc Testnet and settle
+            in ~600ms.
           </p>
-        </div>
+        </Reveal>
 
-        {/* Live Notification Bar if paid */}
         {lastReceipt && (
-          <div className="mb-10 max-w-2xl mx-auto p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-xl flex items-center justify-between shadow-lg shadow-emerald-500/10">
+          <Reveal className="max-w-2xl mx-auto mb-10 rounded-2xl border border-emerald-700/25 bg-emerald-50 p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">🎉</span>
+              <div className="relative">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-600 opacity-30 animate-ping" />
+                <span className="relative inline-flex size-3 rounded-full bg-emerald-600" />
+              </div>
               <div>
-                <div className="text-sm font-bold text-emerald-300">Payment Settled Live on Arc!</div>
-                <div className="text-xs text-slate-400 font-mono">Tx: {lastReceipt.txHash.slice(0, 16)}...</div>
+                <div className="text-sm font-semibold text-primary flex items-center gap-2">
+                  Settled on Arc in ~600ms
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-primary/70">
+                    hash {lastReceipt.txHash.slice(0, 12)}&hellip;
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  99.60% routed directly to the merchant wallet. Zero custody.
+                </div>
               </div>
             </div>
             <a
               href={`https://explorer.testnet.arc.io/tx/${lastReceipt.txHash}`}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline flex items-center gap-1"
+              className="text-xs font-semibold text-primary hover:text-primary/80 underline flex items-center gap-1 shrink-0"
             >
-              <span>View on ArcScan</span>
+              <span>ArcScan</span>
               <ExternalLink className="w-3 h-3" />
             </a>
-          </div>
+          </Reveal>
         )}
 
-        {/* 3 Pricing Cards with Live <ArcPayButton /> */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-          {/* Plan 1: Starter */}
-          <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-8 flex flex-col justify-between hover:border-white/20 transition-all backdrop-blur-xl">
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-sentient font-bold text-white">Starter</h3>
-                <span className="text-[11px] font-mono text-slate-400">HOBBY & INDIE</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          {/* Starter */}
+          <Reveal>
+            <div className="h-full rounded-2xl border border-border bg-card p-8 flex flex-col justify-between hover:border-primary/30 transition-colors">
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-sentient text-foreground">Starter</h3>
+                  <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+                    Hobby
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="font-mono text-4xl font-extrabold text-foreground tabular-nums">
+                    $9.00
+                  </span>
+                  <span className="text-xs font-mono text-muted-foreground">USDC / mo</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                  For indie developers testing micro-services and Web3 SaaS
+                  prototypes.
+                </p>
+                <ul className="space-y-3 text-sm text-muted-foreground mb-8">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span>10,000 API calls / month</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span>Sub-second ~600ms settlement</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span>0.40% protocol fee</span>
+                  </li>
+                </ul>
               </div>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-extrabold text-white font-mono">$9.00</span>
-                <span className="text-xs font-mono text-slate-400">USDC / mo</span>
-              </div>
-              <p className="font-mono text-xs text-slate-400 mb-6 leading-relaxed">
-                Perfect for indie developers testing micro-services and Web3 SaaS prototypes.
-              </p>
-
-              <ul className="space-y-3 font-mono text-xs text-slate-300 mb-8">
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>10,000 API calls / month</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Sub-second ~600ms settlement</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>0.40% Protocol fee ($0.036)</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <ArcPayButton
-                merchant={DEMO_MERCHANT}
-                amount={9.0}
-                item="CloudAI Starter Plan"
-                metadata={{ plan: 'starter', tier: 1 }}
-                theme="light"
-                size="md"
-                className="w-full"
-                onSuccess={handlePaymentSuccess}
-              />
-              <div className="text-[10px] font-mono text-slate-500 text-center mt-2">Zero token approvals required</div>
-            </div>
-          </div>
-
-          {/* Plan 2: Pro (Featured) */}
-          <div className="bg-gradient-to-b from-slate-900/90 via-slate-900/95 to-slate-950 border-2 border-emerald-500/60 rounded-3xl p-8 flex flex-col justify-between relative shadow-[0_0_40px_rgba(16,185,129,0.15)] backdrop-blur-xl scale-102">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="bg-emerald-500 text-slate-950 font-mono font-black px-3 py-1 rounded-full text-[10px] tracking-wider uppercase shadow-md">
-                ★ MOST POPULAR
-              </span>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-4 mt-2">
-                <h3 className="text-2xl font-sentient font-bold text-white flex items-center gap-1.5">
-                  <span>Pro Plan</span>
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
-                </h3>
-                <span className="text-[11px] font-mono text-emerald-400 font-bold">SCALING SAAS</span>
-              </div>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-extrabold text-emerald-400 font-mono">$29.00</span>
-                <span className="text-xs font-mono text-slate-400">USDC / mo</span>
-              </div>
-              <p className="font-mono text-xs text-slate-300 mb-6 leading-relaxed">
-                Complete developer infrastructure for high-growth SaaS and automated agent platforms.
-              </p>
-
-              <ul className="space-y-3 font-mono text-xs text-slate-200 mb-8">
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 font-bold" />
-                  <span className="font-semibold">Unlimited API requests</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 font-bold" />
-                  <span className="font-semibold">Direct merchant payout (99.6%)</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 font-bold" />
-                  <span className="font-semibold">PayLink Studio generator</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 font-bold" />
-                  <span className="font-semibold">Server verification SDK</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <ArcPayButton
-                merchant={DEMO_MERCHANT}
-                amount={29.0}
-                item="CloudAI Pro Plan"
-                metadata={{ plan: 'pro', tier: 2 }}
-                theme="emerald"
-                size="lg"
-                className="w-full shadow-lg shadow-emerald-500/20"
-                onSuccess={handlePaymentSuccess}
-              />
-              <div className="text-[10px] font-mono text-emerald-400 text-center mt-2 font-semibold">
-                ⚡ 1-Click checkout with pure native USDC
+              <div>
+                <ArcPayButton
+                  merchant={DEMO_MERCHANT}
+                  amount={9.0}
+                  item="CloudAI Starter Plan"
+                  metadata={{ plan: 'starter', tier: 1 }}
+                  theme="light"
+                  size="md"
+                  className="w-full"
+                  onSuccess={handlePaymentSuccess}
+                />
+                <div className="text-[10px] font-mono text-muted-foreground text-center mt-2">
+                  Zero token approvals required
+                </div>
               </div>
             </div>
-          </div>
+          </Reveal>
 
-          {/* Plan 3: Enterprise */}
-          <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-8 flex flex-col justify-between hover:border-white/20 transition-all backdrop-blur-xl">
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-sentient font-bold text-white">Enterprise</h3>
-                <span className="text-[11px] font-mono text-slate-400">PLATFORMS & SCALE</span>
+          {/* Pro (Featured) */}
+          <Reveal delay={0.06}>
+            <div className="relative h-full rounded-2xl border-2 border-primary/50 bg-card p-8 flex flex-col justify-between shadow-[0_16px_50px_rgba(14,122,84,0.10)]">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-primary text-white font-mono font-bold px-3 py-1 rounded-full text-[10px] tracking-wider uppercase">
+                  Most popular
+                </span>
               </div>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-extrabold text-white font-mono">$99.00</span>
-                <span className="text-xs font-mono text-slate-400">USDC / mo</span>
+
+              <div>
+                <div className="flex justify-between items-center mb-4 mt-2">
+                  <h3 className="text-xl font-sentient text-foreground flex items-center gap-1.5">
+                    <span>Pro Plan</span>
+                  </h3>
+                  <span className="text-[11px] font-mono text-primary font-bold uppercase tracking-wider">
+                    Scaling SaaS
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="font-mono text-4xl font-extrabold text-primary tabular-nums">
+                    $29.00
+                  </span>
+                  <span className="text-xs font-mono text-muted-foreground">USDC / mo</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                  Infrastructure for high-growth SaaS and automated agent
+                  platforms.
+                </p>
+                <ul className="space-y-3 text-sm text-muted-foreground mb-8">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span className="font-medium text-foreground">Unlimited API requests</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span className="font-medium text-foreground">Direct merchant payout (99.6%)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span className="font-medium text-foreground">PayLink Studio generator</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span className="font-medium text-foreground">Server verification SDK</span>
+                  </li>
+                </ul>
               </div>
-              <p className="font-mono text-xs text-slate-400 mb-6 leading-relaxed">
-                For platforms needing affiliate revenue splits, marketplace payouts, and custom routing.
-              </p>
-
-              <ul className="space-y-3 font-mono text-xs text-slate-300 mb-8">
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Affiliate / split payment routing</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Real-time WebSocket event streaming</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Dedicated Arc RPC node routing</span>
-                </li>
-              </ul>
+              <div>
+                <ArcPayButton
+                  merchant={DEMO_MERCHANT}
+                  amount={29.0}
+                  item="CloudAI Pro Plan"
+                  metadata={{ plan: 'pro', tier: 2 }}
+                  theme="emerald"
+                  size="lg"
+                  className="w-full"
+                  onSuccess={handlePaymentSuccess}
+                />
+                <div className="text-[10px] font-mono text-primary text-center mt-2 font-semibold">
+                  1-click checkout with pure native USDC
+                </div>
+              </div>
             </div>
+          </Reveal>
 
-            <div>
-              <ArcPayButton
-                merchant={DEMO_MERCHANT}
-                amount={99.0}
-                item="CloudAI Enterprise Plan"
-                metadata={{ plan: 'enterprise', tier: 3 }}
-                theme="dark"
-                size="md"
-                className="w-full border border-white/20"
-                onSuccess={handlePaymentSuccess}
-              />
-              <div className="text-[10px] font-mono text-slate-500 text-center mt-2">Zero token approvals required</div>
+          {/* Enterprise */}
+          <Reveal delay={0.06}>
+            <div className="h-full rounded-2xl border border-border bg-card p-8 flex flex-col justify-between hover:border-primary/30 transition-colors">
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-sentient text-foreground">Enterprise</h3>
+                  <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+                    Platforms
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="font-mono text-4xl font-extrabold text-foreground tabular-nums">
+                    $99.00
+                  </span>
+                  <span className="text-xs font-mono text-muted-foreground">USDC / mo</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                  For platforms needing affiliate splits, marketplace payouts,
+                  and custom routing.
+                </p>
+                <ul className="space-y-3 text-sm text-muted-foreground mb-8">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span>Affiliate / split payment routing</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span>Real-time WebSocket event streaming</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <span>Dedicated Arc RPC node routing</span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <ArcPayButton
+                  merchant={DEMO_MERCHANT}
+                  amount={99.0}
+                  item="CloudAI Enterprise Plan"
+                  metadata={{ plan: 'enterprise', tier: 3 }}
+                  theme="light"
+                  size="md"
+                  className="w-full"
+                  onSuccess={handlePaymentSuccess}
+                />
+                <div className="text-[10px] font-mono text-muted-foreground text-center mt-2">
+                  Zero token approvals required
+                </div>
+              </div>
             </div>
-          </div>
+          </Reveal>
         </div>
 
-        {/* Developer Integration Code Box */}
-        <div className="bg-slate-950/90 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="px-6 py-4 border-b border-white/10 bg-slate-900/60 flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <Code className="w-4 h-4 text-emerald-400" />
-              <span className="font-mono font-bold text-xs uppercase tracking-wider text-white">
-                Integration Snippets (&lt; 2 Minutes)
-              </span>
-            </div>
-          </div>
-
-          <div className="p-6">
-            <Tabs defaultValue="react" className="w-full">
-              <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-                <TabsList className="bg-slate-900 border border-white/10 font-mono">
-                  <TabsTrigger value="react" className="text-xs font-semibold data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950">
-                    React Component
-                  </TabsTrigger>
-                  <TabsTrigger value="webcomponent" className="text-xs font-semibold data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950">
-                    Web Component
-                  </TabsTrigger>
-                  <TabsTrigger value="hook" className="text-xs font-semibold data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950">
-                    useCheckout() Hook
-                  </TabsTrigger>
-                  <TabsTrigger value="server" className="text-xs font-semibold data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950">
-                    Server Verification
-                  </TabsTrigger>
-                </TabsList>
+        {/* One-line install strip */}
+        <Reveal>
+          <div className="rounded-2xl border border-border bg-white/60 px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-700/20 text-primary flex items-center justify-center">
+                <Zap className="w-5 h-5 fill-primary" />
               </div>
-
-              {/* React Tab */}
-              <TabsContent value="react" className="mt-0 relative">
-                <div className="absolute top-3 right-3 z-10">
-                  <button
-                    onClick={() => copyToClipboard(reactCodeSnippet, 'react')}
-                    className="p-2 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-white/10 text-xs font-mono text-slate-300 flex items-center gap-1"
-                  >
-                    {copiedTab === 'react' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedTab === 'react' ? 'Copied' : 'Copy'}</span>
-                  </button>
+              <div>
+                <div className="font-sentient text-base text-foreground">
+                  Install in one line
                 </div>
-                <pre className="p-4 rounded-xl bg-slate-900/80 border border-white/5 font-mono text-xs text-emerald-300/90 overflow-x-auto leading-relaxed">
-                  <code>{reactCodeSnippet}</code>
-                </pre>
-              </TabsContent>
-
-              {/* Web Component Tab */}
-              <TabsContent value="webcomponent" className="mt-0 relative">
-                <div className="absolute top-3 right-3 z-10">
-                  <button
-                    onClick={() => copyToClipboard(webComponentSnippet, 'wc')}
-                    className="p-2 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-white/10 text-xs font-mono text-slate-300 flex items-center gap-1"
-                  >
-                    {copiedTab === 'wc' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedTab === 'wc' ? 'Copied' : 'Copy'}</span>
-                  </button>
-                </div>
-                <pre className="p-4 rounded-xl bg-slate-900/80 border border-white/5 font-mono text-xs text-emerald-300/90 overflow-x-auto leading-relaxed">
-                  <code>{webComponentSnippet}</code>
-                </pre>
-              </TabsContent>
-
-              {/* Hook Tab */}
-              <TabsContent value="hook" className="mt-0 relative">
-                <div className="absolute top-3 right-3 z-10">
-                  <button
-                    onClick={() => copyToClipboard(hookSnippet, 'hook')}
-                    className="p-2 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-white/10 text-xs font-mono text-slate-300 flex items-center gap-1"
-                  >
-                    {copiedTab === 'hook' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedTab === 'hook' ? 'Copied' : 'Copy'}</span>
-                  </button>
-                </div>
-                <pre className="p-4 rounded-xl bg-slate-900/80 border border-white/5 font-mono text-xs text-emerald-300/90 overflow-x-auto leading-relaxed">
-                  <code>{hookSnippet}</code>
-                </pre>
-              </TabsContent>
-
-              {/* Server Tab */}
-              <TabsContent value="server" className="mt-0 relative">
-                <div className="absolute top-3 right-3 z-10">
-                  <button
-                    onClick={() => copyToClipboard(serverVerificationSnippet, 'server')}
-                    className="p-2 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-white/10 text-xs font-mono text-slate-300 flex items-center gap-1"
-                  >
-                    {copiedTab === 'server' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedTab === 'server' ? 'Copied' : 'Copy'}</span>
-                  </button>
-                </div>
-                <pre className="p-4 rounded-xl bg-slate-900/80 border border-white/5 font-mono text-xs text-emerald-300/90 overflow-x-auto leading-relaxed">
-                  <code>{serverVerificationSnippet}</code>
-                </pre>
-              </TabsContent>
-            </Tabs>
+                <code className="font-mono text-xs text-foreground/70">
+                  npm i @arcpay/sdk
+                </code>
+              </div>
+            </div>
+            <Link
+              href="/docs"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80"
+            >
+              Read the developer docs
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
