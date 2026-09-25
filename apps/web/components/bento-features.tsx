@@ -1,20 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Eyebrow } from './eyebrow';
 import { Reveal } from './motion';
 import { Zap, ShieldCheck, Clock, Cpu } from 'lucide-react';
 
 export function BentoFeatures() {
-  const [pulseTick, setPulseTick] = useState<number>(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPulseTick((prev) => (prev + 1) % 100);
-    }, 600);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <section className="py-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
@@ -67,10 +58,7 @@ export function BentoFeatures() {
                     <span className="text-primary font-bold">~600ms Finality</span>
                   </div>
                   <div className="w-full h-3 bg-border rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-600 transition-[width] duration-300 rounded-full"
-                      style={{ width: `${(pulseTick % 10) * 10 + 10}%` }}
-                    />
+                    <div className="h-full bg-emerald-600 rounded-full arc-pulse-bar" />
                   </div>
                 </div>
 

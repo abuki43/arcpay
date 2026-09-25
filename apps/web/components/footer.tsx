@@ -34,7 +34,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/#demo" className="hover:text-primary transition-colors">
+                <Link href="/demo" className="hover:text-primary transition-colors">
                   Storefront Demo
                 </Link>
               </li>

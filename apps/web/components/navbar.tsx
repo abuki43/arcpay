@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAccount, useConnect, useDisconnect, useBalance } from 'wagmi';
-import { shortenAddress } from '@arcpay/sdk';
+import { shortenAddress } from '@arcpay/sdk/utils';
 import { Button } from '@/components/ui/button';
 import {
   Zap,
@@ -32,7 +32,7 @@ export function Navbar() {
   };
 
   const navLinks = [
-    { label: 'Demo Store', href: '/#demo' },
+    { label: 'Demo Store', href: '/demo' },
     { label: 'PayLink Studio', href: '/create' },
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Docs', href: '/docs' },

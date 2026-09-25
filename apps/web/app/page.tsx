@@ -1,9 +1,6 @@
-'use client';
-
-import React from 'react';
 import Link from 'next/link';
 import { Hero } from '@/components/hero';
-import { StorefrontDemo } from '@/components/storefront-demo';
+import { DemoTeaser } from '@/components/demo-teaser';
 import { ComparisonSection } from '@/components/comparison';
 import { BentoFeatures } from '@/components/bento-features';
 import { Eyebrow } from '@/components/eyebrow';
@@ -113,7 +110,7 @@ export default function HomePage() {
     <>
       <Hero />
       <BentoFeatures />
-      <StorefrontDemo />
+      <DemoTeaser />
       <ComparisonSection />
       <FlowSection />
     </>

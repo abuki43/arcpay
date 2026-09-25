@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   animate,
   motion,
@@ -10,6 +10,8 @@ import {
 import { cn } from '@/lib/utils';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+const FORCE_REVEAL_MS = 1400;
 
 function prefersReduced() {
   if (typeof window === 'undefined') return false;
@@ -28,12 +30,30 @@ export function Reveal({
   y?: number;
 }) {
   const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const [forced, setForced] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const t = setTimeout(() => setForced(true), FORCE_REVEAL_MS);
+    return () => clearTimeout(t);
+  }, []);
+
+  const inView = useInView(ref, {
+    once: true,
+    amount: 0.1,
+    margin: '0px 0px -10% 0px',
+  });
+
+  const show = reduce || !mounted || inView || forced;
+
   return (
     <motion.div
+      ref={ref}
       className={className}
-      initial={reduce ? undefined : { opacity: 0, y }}
-      whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
+      initial={false}
+      animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y }}
       transition={{ duration: 0.65, delay, ease: EASE }}
     >
       {children}
@@ -60,7 +80,7 @@ export function CountUp({
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   const reduce = useReducedMotion();
-  const inView = useInView(ref, { once: true, amount: 0.4 });
+  const inView = useInView(ref, { once: true, amount: 0.2 });
 
   useEffect(() => {
     if (!inView || !ref.current) return;

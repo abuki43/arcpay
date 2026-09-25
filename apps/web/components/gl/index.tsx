@@ -15,7 +15,7 @@ export const GL = ({ hovering = false, targetRef }: GLProps) => {
   const speed = 1.0;
   const focus = 3.8;
   const aperture = 2.2;
-  const size = 512;
+  const size = 128;
   const noiseScale = 0.6;
   const noiseIntensity = 0.42;
   const timeScale = 1.0;
@@ -25,7 +25,7 @@ export const GL = ({ hovering = false, targetRef }: GLProps) => {
   const vignetteDarkness = 1.0;
   const vignetteOffset = 0.45;
 
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState(true);
 
   useEffect(() => {
     const el = targetRef?.current;
@@ -42,14 +42,18 @@ export const GL = ({ hovering = false, targetRef }: GLProps) => {
     <div id="webgl">
       <Canvas
         frameloop={paused ? 'never' : 'always'}
-        dpr={[1, 2]}
+        dpr={[1, 1.5]}
         camera={{
           position: [1.2629783123314589, 2.664606471394044, -1.8178993743288914],
           fov: 50,
           near: 0.01,
           far: 300,
         }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{
+          antialias: false,
+          alpha: true,
+          powerPreference: 'high-performance',
+        }}
       >
         <color attach="background" args={['#F6F4EF']} />
         <Particles
