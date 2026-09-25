@@ -65,7 +65,7 @@ body {
   height: 100svh;
   width: 100%;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 
 #webgl canvas {
