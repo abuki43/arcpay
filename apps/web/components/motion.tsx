@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   animate,
   motion,
@@ -11,8 +11,6 @@ import { cn } from '@/lib/utils';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-const FORCE_REVEAL_MS = 1400;
-
 function prefersReduced() {
   if (typeof window === 'undefined') return false;
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -22,7 +20,7 @@ export function Reveal({
   children,
   className,
   delay = 0,
-  y = 26,
+  y = 14,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -30,30 +28,17 @@ export function Reveal({
   y?: number;
 }) {
   const reduce = useReducedMotion();
-  const ref = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
-  const [forced, setForced] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const t = setTimeout(() => setForced(true), FORCE_REVEAL_MS);
-    return () => clearTimeout(t);
-  }, []);
-
-  const inView = useInView(ref, {
-    once: true,
-    amount: 0.1,
-    margin: '0px 0px -10% 0px',
-  });
-
-  const show = reduce || !mounted || inView || forced;
+  if (reduce) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <motion.div
-      ref={ref}
       className={className}
-      initial={false}
-      animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y }}
+      initial={{ opacity: 1, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.08, margin: '0px 0px -8% 0px' }}
       transition={{ duration: 0.65, delay, ease: EASE }}
     >
       {children}
