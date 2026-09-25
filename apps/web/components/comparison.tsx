@@ -26,14 +26,18 @@ export function ComparisonSection() {
     <section className="py-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <Reveal className="max-w-2xl mx-auto text-center mb-16">
-          <Eyebrow className="justify-center mb-6">Economics</Eyebrow>
+          <Eyebrow className="justify-center mb-6">
+            Same standard &middot; Different rail
+          </Eyebrow>
           <h2 className="text-4xl sm:text-5xl font-sentient text-foreground tracking-tight">
-            Stop losing <i className="font-light italic text-primary">3%+</i> to
-            legacy rails
+            Stripe-level checkout.
+            <br />
+            <i className="font-light italic text-primary">Settled on Arc.</i>
           </h2>
           <p className="text-muted-foreground mt-4 text-[15px] text-balance max-w-xl mx-auto leading-relaxed">
-            See what your SaaS or creator business keeps by switching to
-            ArcPay&rsquo;s 0.40% protocol settlement on Arc Layer-1.
+            ArcPay ships the checkout you already know from Stripe &mdash; then
+            settles it on a rail Stripe doesn&rsquo;t have: non-custodial,
+            ~600ms, at 0.40% flat.
           </p>
         </Reveal>
 
@@ -125,9 +129,9 @@ export function ComparisonSection() {
               <div className="space-y-4 border-t border-border pt-6">
                 <div className="flex justify-between items-center p-3.5 rounded-xl border border-border bg-white/70">
                   <div>
-                    <div className="text-xs font-bold text-foreground">Stripe (2.9% + $0.30)</div>
+                    <div className="text-xs font-bold text-foreground">Card standard on the web</div>
                     <div className="text-[11px] text-muted-foreground">
-                      Interchange + fixed-fee penalty
+                      Stripe blend: interchange + fixed fee
                     </div>
                   </div>
                   <div className="font-mono text-sm font-bold text-rose-500 tabular-nums">
@@ -137,9 +141,9 @@ export function ComparisonSection() {
 
                 <div className="flex justify-between items-center p-3.5 rounded-xl bg-emerald-50 border border-emerald-700/25">
                   <div>
-                    <div className="text-xs font-bold text-primary">ArcPay (0.40% flat)</div>
+                    <div className="text-xs font-bold text-primary">ArcPay on Arc (0.40% flat)</div>
                     <div className="text-[11px] text-muted-foreground">
-                      Pure native USDC - zero fixed penalty
+                      Native USDC, one click, non-custodial
                     </div>
                   </div>
                   <div className="font-mono text-base font-bold text-primary tabular-nums">
@@ -164,8 +168,8 @@ export function ComparisonSection() {
               <thead>
                 <tr className="border-b border-border bg-white/60 text-[11px] uppercase tracking-wider text-muted-foreground">
                   <th className="p-4 sm:p-5 font-bold text-foreground">Feature / Metric</th>
-                  <th className="p-4 sm:p-5">Traditional Stripe</th>
-                  <th className="p-4 sm:p-5">Ethereum / Base USDC</th>
+                  <th className="p-4 sm:p-5">Stripe on the Web</th>
+                  <th className="p-4 sm:p-5">EVM USDC Today</th>
                   <th className="p-4 sm:p-5 text-primary bg-emerald-50 font-bold">
                     ArcPay on Arc L1
                   </th>

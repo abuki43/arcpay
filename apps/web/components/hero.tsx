@@ -1,12 +1,16 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { GL } from './gl';
 import { Eyebrow } from './eyebrow';
 import { Button } from '@/components/ui/button';
 import { CountUp } from './motion';
 import { ArrowRight } from 'lucide-react';
+
+const GL = dynamic(() => import('./gl').then((m) => m.GL), {
+  ssr: false,
+});
 
 const STATS = [
   {
@@ -15,7 +19,7 @@ const STATS = [
     suffix: '%',
     decimals: 2,
     label: 'Protocol fee',
-    note: 'vs 2.9% + $0.30 on Stripe',
+    note: 'One flat rate · No hidden fees',
   },
   {
     value: 600,
@@ -71,24 +75,25 @@ export function Hero() {
       {/* Hero Center Content */}
       <div className="max-w-5xl mx-auto px-6 lg:px-8 text-center relative z-10 my-auto pt-40 pb-20">
         <Eyebrow className="justify-center mb-8">
-          Native USDC checkout on Arc Layer-1
+          The one-click USDC checkout for SaaS &amp; creators
         </Eyebrow>
 
         <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[6.5rem] font-sentient text-foreground leading-[1.02] tracking-[-0.02em] mb-8">
-          One click.
+          Stripe on Arc.
           <br />
-          <i className="font-light italic text-primary">600 milliseconds.</i>
-          <br />
-          Done.
+          <i className="font-light italic text-primary">
+            One click. Yours.
+          </i>
         </h1>
 
         <p className="text-[15px] sm:text-base text-muted-foreground text-balance max-w-xl mx-auto leading-relaxed mb-10">
-          The 1-click USDC checkout for SaaS, creators, and agents -
-          built on the native-gas Arc Layer-1.
+          Drop in <code className="font-mono text-xs text-primary">@arcpay/sdk</code>{' '}
+          and take native USDC in ~600ms &mdash; zero custody, zero approvals,
+          zero code.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/#demo">
+          <Link href="/demo">
             <Button
               size="lg"
               className="gap-2"

@@ -299,7 +299,7 @@ export default function MerchantDashboardPage() {
               <span className="text-xs font-normal text-muted-foreground font-sans">USDC</span>
             </div>
             <div className="text-[11px] text-muted-foreground mt-2">
-              7x cheaper than Stripe
+              0.40% flat &middot; no interchange tiers
             </div>
           </div>
         </div>
