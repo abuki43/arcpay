@@ -46,14 +46,14 @@ const LightningGlyph = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-function getChainParams(chainId: number) {
+function getChainParams(chainId: number, rpcUrl?: string) {
   const isTestnet = chainId === 5042002;
   const chain = isTestnet ? arcTestnet : arcMainnet;
   return {
     chainId: `0x${chainId.toString(16)}`,
     chainName: chain.name,
     nativeCurrency: chain.nativeCurrency,
-    rpcUrls: [chain.rpcUrls.default.http[0]],
+    rpcUrls: [rpcUrl || chain.rpcUrls.default.http[0]],
     blockExplorerUrls: [chain.blockExplorers?.default.url],
   };
 }
@@ -93,6 +93,7 @@ export function useCheckout(): UseCheckoutReturn {
 
       const chainId = params.chainId || 5042002;
       const targetChain = SUPPORTED_CHAINS[chainId] || arcTestnet;
+      const rpcUrl = params.rpcUrl;
       const gatewayAddress =
         params.contractAddress ||
         DEFAULT_GATEWAY_ADDRESSES[chainId] ||
@@ -125,7 +126,7 @@ export function useCheckout(): UseCheckoutReturn {
           if (switchError.code === 4902 || switchError.message?.includes('Unrecognized chain')) {
             await ethereum.request({
               method: 'wallet_addEthereumChain',
-              params: [getChainParams(chainId)],
+              params: [getChainParams(chainId, rpcUrl)],
             });
           } else {
             throw switchError;
@@ -187,7 +188,7 @@ export function useCheckout(): UseCheckoutReturn {
         // 5. Wait for on-chain confirmation & receipt (~600ms on Arc)
         const publicClient = createPublicClient({
           chain: targetChain,
-          transport: http(),
+          transport: rpcUrl ? http(rpcUrl) : http(),
         });
 
         let blockNumber = 0n;
@@ -464,6 +465,7 @@ export function ArcPayButton({
   style = {},
   chainId = 5042002,
   contractAddress,
+  rpcUrl,
   onSuccess,
   onError,
   onCancel,
@@ -540,6 +542,7 @@ export function ArcPayButton({
     affiliateAmount,
     chainId,
     contractAddress,
+    rpcUrl,
   };
 
   return (

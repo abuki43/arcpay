@@ -10,6 +10,8 @@ import { Check, Zap, ExternalLink, ArrowUpRight } from 'lucide-react';
 
 const DEMO_MERCHANT = '0xf46b169915c5820E9FcdcD79F5AA5B246E32220D';
 
+const DEMO_RPC_URL = process.env.NEXT_PUBLIC_ARC_TESTNET_RPC_URL || undefined;
+
 export function StorefrontDemo() {
   const [lastReceipt, setLastReceipt] = useState<any>(null);
 
@@ -116,6 +118,7 @@ export function StorefrontDemo() {
                   theme="light"
                   size="md"
                   className="w-full"
+                  rpcUrl={DEMO_RPC_URL}
                   onSuccess={handlePaymentSuccess}
                 />
                 <div className="text-[10px] font-mono text-muted-foreground text-center mt-2">
@@ -181,6 +184,7 @@ export function StorefrontDemo() {
                   theme="emerald"
                   size="lg"
                   className="w-full"
+                  rpcUrl={DEMO_RPC_URL}
                   onSuccess={handlePaymentSuccess}
                 />
                 <div className="text-[10px] font-mono text-primary text-center mt-2 font-semibold">
@@ -234,6 +238,7 @@ export function StorefrontDemo() {
                   theme="light"
                   size="md"
                   className="w-full"
+                  rpcUrl={DEMO_RPC_URL}
                   onSuccess={handlePaymentSuccess}
                 />
                 <div className="text-[10px] font-mono text-muted-foreground text-center mt-2">

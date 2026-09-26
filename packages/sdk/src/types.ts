@@ -41,6 +41,8 @@ export interface CheckoutParams {
   chainId?: number;
   /** Custom gateway contract address override */
   contractAddress?: Address;
+  /** Custom RPC URL override (e.g. an Alchemy Arc endpoint). Defaults to the chain's public endpoint. */
+  rpcUrl?: string;
 }
 
 /**
@@ -132,6 +134,8 @@ export interface ArcPayButtonProps {
   chainId?: number;
   /** Custom contract address override */
   contractAddress?: Address;
+  /** Custom RPC URL override (e.g. an Alchemy Arc endpoint). Defaults to the chain's public endpoint. */
+  rpcUrl?: string;
   /** Callback triggered on verified payment */
   onSuccess?: (receipt: PaymentReceipt) => void;
   /** Callback triggered on transaction error */

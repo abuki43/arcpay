@@ -18,7 +18,7 @@ const CustomElementBase: { new (): HTMLElement } =
  */
 export class ArcPayButtonElement extends CustomElementBase {
   static get observedAttributes() {
-    return ['merchant', 'amount', 'item', 'theme', 'chain-id', 'contract-address', 'metadata'];
+    return ['merchant', 'amount', 'item', 'theme', 'chain-id', 'contract-address', 'metadata', 'rpc-url'];
   }
 
   private shadow?: ShadowRoot;
@@ -183,6 +183,7 @@ export class ArcPayButtonElement extends CustomElementBase {
     const metadataStr = this.getAttribute('metadata') || '';
     const chainId = parseInt(this.getAttribute('chain-id') || '5042002', 10);
     const customContract = this.getAttribute('contract-address');
+    const rpcUrl = this.getAttribute('rpc-url') || undefined;
 
     if (!merchant || !amount) {
       this.dispatchEvent(new CustomEvent('arcpay:error', { detail: { message: 'Missing merchant or amount attribute' } }));
@@ -224,7 +225,7 @@ export class ArcPayButtonElement extends CustomElementBase {
               chainId: chainHex,
               chainName: targetChain.name,
               nativeCurrency: targetChain.nativeCurrency,
-              rpcUrls: [targetChain.rpcUrls.default.http[0]],
+              rpcUrls: [rpcUrl || targetChain.rpcUrls.default.http[0]],
               blockExplorerUrls: [targetChain.blockExplorers?.default.url],
             }],
           });
@@ -259,7 +260,7 @@ export class ArcPayButtonElement extends CustomElementBase {
       // Wait for transaction receipt
       const publicClient = createPublicClient({
         chain: targetChain,
-        transport: http(),
+        transport: rpcUrl ? http(rpcUrl) : http(),
       });
 
       let blockNumber = 0n;

@@ -79,7 +79,8 @@ export default function DocsPage() {
   merchant="0xYourWalletAddress..."
   amount="29.00"
   item="Digital Download"
-  theme="emerald">
+  theme="emerald"
+  rpc-url="https://arc-testnet.g.alchemy.com/v2/API_KEY">
 </arc-pay-button>
 
 <script>
@@ -100,6 +101,7 @@ export function CustomCheckout() {
       merchant: "0xYourWalletAddress...",
       amount: 29.00,
       item: "Custom Bespoke SaaS Tier",
+      rpcUrl: "https://arc-testnet.g.alchemy.com/v2/API_KEY", // optional override
     });
     console.log("Receipt:", res);
   };

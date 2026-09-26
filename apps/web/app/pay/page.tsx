@@ -62,6 +62,7 @@ function PayContent() {
         item,
         metadata: metadataRaw || undefined,
         chainId,
+        rpcUrl: process.env.NEXT_PUBLIC_ARC_TESTNET_RPC_URL || undefined,
       });
     } catch (err) {
       console.error('Checkout error:', err);
