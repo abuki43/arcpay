@@ -35,6 +35,7 @@ export function Navbar() {
     { label: 'Demo Store', href: '/demo' },
     { label: 'PayLink Studio', href: '/create' },
     { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Network', href: '/network' },
     { label: 'Docs', href: '/docs' },
   ];
 
