@@ -21,10 +21,6 @@ export function Footer() {
               Developer-first payment protocol and embeddable checkout SDK
               built for the Arc Network.
             </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-700/20 text-primary text-[11px] font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-              DoraHacks Microgrants Track
-            </div>
           </div>
 
           {/* Product */}
