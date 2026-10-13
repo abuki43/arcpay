@@ -2,100 +2,110 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Sentient';
-  src: url('/Sentient-Extralight.woff') format('woff');
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Sentient';
-  src: url('/Sentient-LightItalic.woff') format('woff');
-  font-weight: 300;
-  font-style: italic;
-  font-display: swap;
-}
-
 :root {
-  --background: 40 22% 96%;
-  --foreground: 220 13% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 220 13% 10%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 220 13% 10%;
-  --primary: 161 72% 26%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 40 16% 90%;
-  --secondary-foreground: 220 13% 12%;
-  --muted: 40 16% 93%;
-  --muted-foreground: 220 9% 40%;
-  --accent: 158 45% 93%;
-  --accent-foreground: 162 60% 22%;
-  --destructive: 0 68% 50%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 40 14% 85%;
-  --input: 40 14% 85%;
-  --ring: 162 72% 30%;
-  --radius: 0.9rem;
+  --canvas:        #0B0B0A;
+  --surface:       #141413;
+  --raised:        #1C1C1B;
+  --inset:         #232322;
+  --line:          #2A2A29;
+  --line-strong:   #3F3E3C;
+  --ink:           #F0EFEC;
+  --ink-2:         #B0AEA9;
+  --ink-3:         #8D8B86;
+  --accent:        #F5A524;
+  --accent-2:      #E89216;
+  --danger:        #E5484D;
+  --radius-chip:   6px;
+  --radius-ctl:    8px;
+  --radius-pill:   9999px;
+  --leading-tight: 1.2;
+  --leading-snug:  1.35;
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --leading-relaxed: 1.5;
 }
 
-.font-sentient {
-  font-family: 'Sentient', Georgia, serif;
+html, body {
+  background-color: var(--canvas);
+  color: var(--ink);
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11", "tnum";
 }
 
 ::selection {
-  background-color: hsl(var(--primary) / 0.14);
-  color: hsl(var(--foreground));
+  background-color: color-mix(in srgb, var(--accent) 26%, transparent);
+  color: var(--ink);
 }
 
-#webgl {
-  top: 0;
-  left: 0;
-  position: fixed;
-  height: 100svh;
-  width: 100%;
-  pointer-events: none;
-  z-index: -1;
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-#webgl canvas {
-  width: 100% !important;
-  height: 100% !important;
+/* Hairline divider used across the page */
+.hairline {
+  border-color: var(--line);
 }
 
-/* Paper grain overlay */
-body::after {
-  content: '';
-  position: fixed;
+/* Accent underline used in nav, links */
+.underline-accent {
+  background-image: linear-gradient(to right, var(--accent) 0%, var(--accent) 100%);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+}
+
+/* Halftone overlay used behind hero and cinema panel */
+.halftone {
+  background-image: radial-gradient(circle at 1px 1px, rgba(240, 239, 236, 0.06) 1px, transparent 1.5px);
+  background-size: 6px 6px;
+}
+
+/* Subtle film-grain (data-uri) for hero texture */
+.grain {
+  position: relative;
+}
+.grain::after {
+  content: "";
+  position: absolute;
   inset: 0;
-  z-index: 1;
   pointer-events: none;
-  opacity: 0.035;
-  mix-blend-mode: multiply;
+  z-index: 1;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* Pinned live pulse for "live" indicators */
 @keyframes arc-pulse {
-  0% {
-    width: 12%;
-  }
-  100% {
-    width: 92%;
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.85); }
+}
+.arc-pulse {
+  animation: arc-pulse 1.8s ease-in-out infinite;
 }
 
-.arc-pulse-bar {
-  animation: arc-pulse 3.2s cubic-bezier(0.45, 0.05, 0.4, 1) infinite alternate;
+@keyframes arc-shimmer {
+  0%   { background-position: -240px 0; }
+  100% { background-position: 240px 0; }
+}
+.arc-shimmer {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent) 14%, transparent) 50%, transparent 100%);
+  background-size: 240px 100%;
+  background-repeat: no-repeat;
+  animation: arc-shimmer 1.4s linear infinite;
+}
+
+@keyframes ledger-in {
+  0%   { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.ledger-in {
+  animation: ledger-in 0.45s var(--ease-out-quint) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -107,4 +117,5 @@ body::after {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .arc-pulse, .arc-shimmer, .ledger-in { animation: none !important; }
 }

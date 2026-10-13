@@ -4,27 +4,28 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+  "inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-canvas disabled:pointer-events-none disabled:opacity-50 active:translate-y-px",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/90",
+          "bg-accent text-canvas hover:bg-accent-2",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-danger text-white hover:bg-danger/90",
         outline:
-          "border border-border bg-background text-foreground hover:border-primary/40 hover:text-primary",
+          "border border-line text-ink hover:border-line-strong hover:bg-raised",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/70",
+          "bg-raised text-ink hover:bg-inset border border-line",
         ghost:
-          "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "text-ink-2 hover:text-ink hover:bg-raised",
+        link: "text-accent underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-5",
-        sm: "h-9 rounded-md px-3 text-xs",
-        lg: "h-12 rounded-xl px-8 text-[15px] font-semibold",
-        icon: "h-10 w-10",
+        default: "h-9 px-4 text-body rounded-ctl",
+        sm: "h-8 px-3 text-tiny rounded-chip",
+        lg: "h-11 px-6 text-lead rounded-ctl",
+        icon: "h-9 w-9 rounded-ctl",
+        "icon-sm": "h-8 w-8 rounded-chip",
       },
     },
     defaultVariants: {

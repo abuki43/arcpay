@@ -27,3 +27,7 @@ packages/*/dist/
 *.log
 .DS_Store
 Thumbs.db
+
+.agents
+skills-lock.json
+.codegraph/

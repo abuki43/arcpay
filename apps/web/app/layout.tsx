@@ -1,8 +1,31 @@
 import type { Metadata } from 'next';
+import { Instrument_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+
+const sans = Instrument_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-sans',
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+});
+
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-mono',
+  weight: ['400', '500', '600'],
+});
+
+const display = Instrument_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-display',
+  weight: ['500', '600'],
+});
 
 export const metadata: Metadata = {
   title: 'ArcPay — The 1-Click USDC Checkout Protocol for Arc Network',
@@ -16,8 +39,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className="bg-background text-foreground min-h-screen antialiased selection:bg-primary/20 selection:text-foreground">
+    <html
+      lang="en"
+      className={`${sans.variable} ${mono.variable} scroll-smooth`}
+    >
+      <body className="bg-canvas text-ink min-h-screen antialiased">
         <Providers>
           <div className="flex flex-col min-h-screen">
             <Navbar />

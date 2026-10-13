@@ -10,11 +10,11 @@ export const Eyebrow = ({
 }) => (
   <p
     className={cn(
-      'inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary',
+      'inline-flex items-center gap-2.5 text-tiny font-medium uppercase tracking-mono-cap text-accent',
       className
     )}
   >
-    <span className="inline-block h-px w-6 bg-primary/50" aria-hidden />
+    <span className="inline-block h-px w-6 bg-accent/60" aria-hidden />
     {children}
   </p>
 );
