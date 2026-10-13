@@ -18,10 +18,6 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50', 10);
     const page = parseInt(searchParams.get('page') || '1', 10);
 
-    if (!merchant && !payLinkSlug) {
-      return NextResponse.json({ error: 'merchant or slug parameter required' }, { status: 400 });
-    }
-
     const where: any = {};
     if (merchant) where.merchantAddress = merchant;
     if (payLinkSlug) where.payLinkId = payLinkSlug;
