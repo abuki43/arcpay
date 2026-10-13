@@ -2,144 +2,117 @@ import React from 'react';
 import Link from 'next/link';
 import { Zap, Github, ExternalLink, ShieldCheck } from 'lucide-react';
 
+const product = [
+  { label: 'Storefront Demo', href: '/demo' },
+  { label: 'PayLink Studio', href: '/create' },
+  { label: 'Merchant Dashboard', href: '/dashboard' },
+  { label: 'Network Analytics', href: '/network' },
+  { label: 'Documentation', href: '/docs' },
+];
+
+const developers = [
+  { label: 'GitHub Repository', href: 'https://github.com' },
+  { label: 'ArcScan Explorer', href: 'https://explorer.testnet.arc.io' },
+  { label: 'Circle Faucet', href: 'https://faucet.circle.com' },
+  { label: 'NPM Package', href: '/docs' },
+];
+
 export function Footer() {
   return (
-    <footer className="relative z-10 border-t border-border bg-white/50 text-muted-foreground text-xs py-12">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-          {/* Brand Col */}
+    <footer className="relative border-t border-line bg-canvas text-ink-2">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-10 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-14">
           <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-white">
-                <Zap className="w-4 h-4 fill-white" />
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <div className="w-7 h-7 rounded-ctl bg-accent flex items-center justify-center text-canvas">
+                <Zap className="w-3.5 h-3.5 fill-canvas" />
               </div>
-              <span className="font-sentient text-base text-foreground">
+              <span className="text-title font-semibold text-ink tracking-tightish">
                 ArcPay
               </span>
             </Link>
-            <p className="text-muted-foreground text-xs leading-relaxed mb-4 max-w-[240px]">
+            <p className="text-tiny text-ink-3 leading-relaxed max-w-[240px]">
               Developer-first payment protocol and embeddable checkout SDK
               built for the Arc Network.
             </p>
+            <div className="mt-5 inline-flex items-center gap-2 px-2.5 h-7 rounded-pill border border-line bg-raised text-tiny font-medium text-ink-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent arc-pulse" />
+              <span>Chain 5042002 · Arc Testnet</span>
+            </div>
           </div>
 
-          {/* Product */}
           <div>
-            <h4 className="text-foreground font-semibold mb-3 text-[11px] uppercase tracking-[0.14em]">
+            <h4 className="text-tiny font-medium uppercase tracking-mono-cap text-ink mb-4">
               Product
             </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/demo" className="hover:text-primary transition-colors">
-                  Storefront Demo
-                </Link>
-              </li>
-              <li>
-                <Link href="/create" className="hover:text-primary transition-colors">
-                  PayLink Studio
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard" className="hover:text-primary transition-colors">
-                  Merchant Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link href="/network" className="hover:text-primary transition-colors">
-                  Network Analytics
-                </Link>
-              </li>
-              <li>
-                <Link href="/docs" className="hover:text-primary transition-colors">
-                  Documentation
-                </Link>
-              </li>
+            <ul className="space-y-2.5 text-tiny">
+              {product.map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="text-ink-2 hover:text-ink transition-colors"
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Developers */}
           <div>
-            <h4 className="text-foreground font-semibold mb-3 text-[11px] uppercase tracking-[0.14em]">
+            <h4 className="text-tiny font-medium uppercase tracking-mono-cap text-ink mb-4">
               Developers
             </h4>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-primary transition-colors flex items-center gap-1.5"
-                >
-                  <Github className="w-3 h-3" />
-                  GitHub Repository
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://explorer.testnet.arc.io"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-primary transition-colors flex items-center gap-1.5"
-                >
-                  ArcScan Explorer
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://faucet.circle.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-primary transition-colors flex items-center gap-1.5"
-                >
-                  Circle Faucet
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </li>
-              <li>
-                <Link href="/docs" className="hover:text-primary transition-colors">
-                  NPM Package (@arcpay/sdk)
-                </Link>
-              </li>
+            <ul className="space-y-2.5 text-tiny">
+              {developers.map((l) => (
+                <li key={l.label}>
+                  <a
+                    href={l.href}
+                    target={l.href.startsWith('http') ? '_blank' : undefined}
+                    rel={l.href.startsWith('http') ? 'noreferrer' : undefined}
+                    className="text-ink-2 hover:text-ink transition-colors flex items-center gap-1.5"
+                  >
+                    {l.label === 'GitHub Repository' && <Github className="w-3 h-3" />}
+                    {l.label}
+                    {l.href.startsWith('http') && (
+                      <ExternalLink className="w-3 h-3 text-ink-3" />
+                    )}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Network Spec */}
           <div>
-            <h4 className="text-foreground font-semibold mb-3 text-[11px] uppercase tracking-[0.14em]">
+            <h4 className="text-tiny font-medium uppercase tracking-mono-cap text-ink mb-4">
               Network
             </h4>
-            <div className="p-3.5 rounded-xl border border-border bg-background space-y-1.5 font-mono text-[11px] tabular-nums">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Chain ID</span>
-                <span className="text-foreground font-semibold">5042002</span>
+            <div className="rounded-ctl border border-line bg-raised divide-y divide-line font-mono text-tiny tabular-nums">
+              <div className="flex justify-between px-3 py-2.5">
+                <span className="text-ink-3">Chain ID</span>
+                <span className="text-ink font-medium">5042002</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Gas Asset</span>
-                <span className="text-primary font-semibold">USDC (18 Dec)</span>
+              <div className="flex justify-between px-3 py-2.5">
+                <span className="text-ink-3">Gas Asset</span>
+                <span className="text-accent font-medium">USDC · 18d</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Protocol Fee</span>
-                <span className="text-primary font-semibold">0.40% (40 bps)</span>
+              <div className="flex justify-between px-3 py-2.5">
+                <span className="text-ink-3">Protocol Fee</span>
+                <span className="text-accent font-medium">0.40% (40 bps)</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Finality</span>
-                <span className="text-foreground font-semibold">~600ms</span>
+              <div className="flex justify-between px-3 py-2.5">
+                <span className="text-ink-3">Finality</span>
+                <span className="text-ink font-medium">~600ms</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-muted-foreground text-[11px]">
-          <div>
-            © {new Date().getFullYear()} ArcPay Protocol. Open-source MIT.
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-              Non-custodial smart contract routing
-            </span>
+        <div className="border-t border-line pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-nano uppercase tracking-mono-cap text-ink-3">
+          <div>© {new Date().getFullYear()} ArcPay Protocol · Open-source MIT</div>
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-3 h-3 text-accent" />
+            Non-custodial smart-contract routing
           </div>
         </div>
       </div>

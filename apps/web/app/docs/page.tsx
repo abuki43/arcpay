@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Eyebrow } from '@/components/eyebrow';
+import { Reveal } from '@/components/motion';
+import { Input } from '@/components/ui/input';
 import {
   Copy,
   Check,
@@ -31,16 +32,16 @@ function CodeBlock({
       <button
         type="button"
         onClick={() => onCopy(code, copyKey)}
-        className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-chip border border-line bg-raised px-2.5 h-7 text-tiny text-ink-2 hover:text-ink hover:border-line-strong transition-colors font-mono"
       >
         {copiedKey === copyKey ? (
-          <Check className="w-3.5 h-3.5 text-primary" />
+          <Check className="w-3 h-3 text-accent" />
         ) : (
-          <Copy className="w-3.5 h-3.5" />
+          <Copy className="w-3 h-3" />
         )}
         <span>{copiedKey === copyKey ? 'Copied' : 'Copy'}</span>
       </button>
-      <pre className="p-4 rounded-xl bg-[#0F1115] font-mono text-xs text-emerald-100/90 overflow-x-auto leading-relaxed">
+      <pre className="p-4 rounded-ctl bg-raised font-mono text-tiny text-ink overflow-x-auto leading-relaxed border border-line">
         <code>{code}</code>
       </pre>
     </div>
@@ -57,7 +58,6 @@ export default function DocsPage() {
   };
 
   const quickstartCode = `pnpm add @arcpay/sdk viem`;
-
   const reactCode = `import { ArcPayButton } from '@arcpay/sdk/react';
 
 <ArcPayButton
@@ -65,21 +65,19 @@ export default function DocsPage() {
   amount={29.00}
   item="CloudAI Pro Subscription"
   metadata={{ userId: "usr_1042", plan: "pro" }}
-  theme="emerald"
+  theme="instrument"
   onSuccess={(receipt) => {
     console.log("Paid in ~600ms:", receipt.txHash);
-    // Provision access immediately
   }}
   onError={(err) => console.error(err)}
 />`;
-
   const webComponentCode = `<script type="module" src="https://unpkg.com/@arcpay/sdk/dist/element.js"></script>
 
 <arc-pay-button
   merchant="0xYourWalletAddress..."
   amount="29.00"
   item="Digital Download"
-  theme="emerald"
+  theme="instrument"
   rpc-url="https://arc-testnet.g.alchemy.com/v2/API_KEY">
 </arc-pay-button>
 
@@ -90,7 +88,6 @@ export default function DocsPage() {
       console.log('Payment Settled:', e.detail.txHash);
     });
 </script>`;
-
   const hookCode = `import { useCheckout } from '@arcpay/sdk/react';
 
 export function CustomCheckout() {
@@ -101,7 +98,7 @@ export function CustomCheckout() {
       merchant: "0xYourWalletAddress...",
       amount: 29.00,
       item: "Custom Bespoke SaaS Tier",
-      rpcUrl: "https://arc-testnet.g.alchemy.com/v2/API_KEY", // optional override
+      rpcUrl: "https://arc-testnet.g.alchemy.com/v2/API_KEY",
     });
     console.log("Receipt:", res);
   };
@@ -112,7 +109,6 @@ export function CustomCheckout() {
     </button>
   );
 }`;
-
   const serverCode = `import { verifyArcPayment } from '@arcpay/sdk/server';
 
 // Next.js App Router: app/api/verify-payment/route.ts
@@ -135,24 +131,19 @@ if (verification.isValid) {
       icon: Terminal,
       body: (
         <>
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Install <code className="font-mono text-xs text-primary">@arcpay/sdk</code> and{' '}
-            <code className="font-mono text-xs text-primary">viem</code> in your React,
-            Next.js, or TypeScript application:
+          <p className="text-body text-ink-3 mb-5 leading-relaxed">
+            Install <code className="font-mono text-tiny text-accent">@arcpay/sdk</code> and{' '}
+            <code className="font-mono text-tiny text-accent">viem</code> in your React,
+            Next.js, or TypeScript application.
           </p>
-          <CodeBlock
-            code={quickstartCode}
-            copyKey="install"
-            onCopy={handleCopy}
-            copiedKey={copiedKey}
-          />
-          <div className="mt-6 rounded-xl bg-emerald-50 border border-emerald-700/25 px-4 py-3 text-xs text-primary leading-relaxed flex gap-2.5">
-            <Zap className="w-4 h-4 shrink-0 mt-0.5" />
+          <CodeBlock code={quickstartCode} copyKey="install" onCopy={handleCopy} copiedKey={copiedKey} />
+          <div className="mt-5 rounded-ctl bg-accent/10 border border-accent/30 px-4 py-3 text-tiny text-ink leading-relaxed flex gap-2.5">
+            <Zap className="w-4 h-4 text-accent shrink-0 mt-0.5" />
             <span>
-              <strong>1-click checkout:</strong> because USDC is Arc&rsquo;s native gas
-              asset, transactions execute via <code className="font-mono">msg.value</code>{' '}
-              without ERC-20 <code className="font-mono">approve()</code> steps or
-              paymasters.
+              <strong className="text-accent">1-click checkout:</strong> because USDC is Arc's
+              native gas asset, transactions execute via{' '}
+              <code className="font-mono text-tiny text-ink">msg.value</code> without
+              ERC-20 <code className="font-mono text-tiny text-ink">approve()</code> steps.
             </span>
           </div>
         </>
@@ -164,60 +155,39 @@ if (verification.isValid) {
       icon: Code,
       body: (
         <>
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Drop in the pre-built button component anywhere in your React application:
+          <p className="text-body text-ink-3 mb-5 leading-relaxed">
+            Drop in the pre-built button component anywhere in your React application.
           </p>
-          <CodeBlock
-            code={reactCode}
-            copyKey="btn-react"
-            onCopy={handleCopy}
-            copiedKey={copiedKey}
-          />
+          <CodeBlock code={reactCode} copyKey="btn-react" onCopy={handleCopy} copiedKey={copiedKey} />
 
-          <h3 className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">
+          <h3 className="text-tiny font-medium uppercase tracking-mono-cap text-ink-2 mb-3 mt-7">
             Props reference
           </h3>
-          <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-left text-xs text-muted-foreground">
-              <thead className="bg-white/60 text-muted-foreground font-semibold border-b border-border">
+          <div className="overflow-x-auto rounded-ctl border border-line">
+            <table className="w-full text-left text-tiny">
+              <thead className="bg-raised text-ink-3 font-mono border-b border-line">
                 <tr>
-                  <th className="p-3">Prop</th>
-                  <th className="p-3">Type</th>
-                  <th className="p-3">Default</th>
-                  <th className="p-3">Description</th>
+                  <th className="p-3 font-medium">Prop</th>
+                  <th className="p-3 font-medium">Type</th>
+                  <th className="p-3 font-medium">Default</th>
+                  <th className="p-3 font-medium">Description</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
-                <tr>
-                  <td className="p-3 font-mono text-primary">merchant</td>
-                  <td className="p-3 font-mono">Address</td>
-                  <td className="p-3">Required</td>
-                  <td className="p-3">Merchant recipient wallet address</td>
-                </tr>
-                <tr>
-                  <td className="p-3 font-mono text-primary">amount</td>
-                  <td className="p-3 font-mono">number | string</td>
-                  <td className="p-3">Required</td>
-                  <td className="p-3">USDC amount (e.g. 29.00)</td>
-                </tr>
-                <tr>
-                  <td className="p-3 font-mono text-primary">item</td>
-                  <td className="p-3 font-mono">string</td>
-                  <td className="p-3">&quot;One-Time Purchase&quot;</td>
-                  <td className="p-3">Product name shown in checkout modal</td>
-                </tr>
-                <tr>
-                  <td className="p-3 font-mono text-primary">theme</td>
-                  <td className="p-3 font-mono">&apos;emerald&apos; | &apos;dark&apos; | &apos;light&apos; | &apos;minimal&apos;</td>
-                  <td className="p-3">&apos;emerald&apos;</td>
-                  <td className="p-3">Visual button styling theme</td>
-                </tr>
-                <tr>
-                  <td className="p-3 font-mono text-primary">metadata</td>
-                  <td className="p-3 font-mono">object | string</td>
-                  <td className="p-3">undefined</td>
-                  <td className="p-3">Arbitrary metadata JSON string/object</td>
-                </tr>
+              <tbody className="divide-y divide-line font-mono text-ink-2">
+                {[
+                  ['merchant', 'Address', 'Required', 'Merchant recipient wallet address'],
+                  ['amount', 'number | string', 'Required', 'USDC amount (e.g. 29.00)'],
+                  ['item', 'string', '"One-Time Purchase"', 'Product name shown in checkout modal'],
+                  ['theme', "'emerald' | 'dark' | 'light' | 'minimal'", "'emerald'", 'Visual button styling theme'],
+                  ['metadata', 'object | string', 'undefined', 'Arbitrary metadata JSON string/object'],
+                ].map((row) => (
+                  <tr key={row[0]} className="hover:bg-raised/40">
+                    <td className="p-3 text-accent">{row[0]}</td>
+                    <td className="p-3 text-ink">{row[1]}</td>
+                    <td className="p-3 text-ink-2">{row[2]}</td>
+                    <td className="p-3 text-ink-2 font-sans">{row[3]}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -230,15 +200,10 @@ if (verification.isValid) {
       icon: Layers,
       body: (
         <>
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            For non-React platforms like Webflow, Shopify, WordPress, or vanilla HTML:
+          <p className="text-body text-ink-3 mb-5 leading-relaxed">
+            For non-React platforms like Webflow, Shopify, WordPress, or vanilla HTML.
           </p>
-          <CodeBlock
-            code={webComponentCode}
-            copyKey="btn-wc"
-            onCopy={handleCopy}
-            copiedKey={copiedKey}
-          />
+          <CodeBlock code={webComponentCode} copyKey="btn-wc" onCopy={handleCopy} copiedKey={copiedKey} />
         </>
       ),
     },
@@ -248,15 +213,10 @@ if (verification.isValid) {
       icon: MousePointerClick,
       body: (
         <>
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Build a fully custom checkout UI with programmatic control:
+          <p className="text-body text-ink-3 mb-5 leading-relaxed">
+            Build a fully custom checkout UI with programmatic control.
           </p>
-          <CodeBlock
-            code={hookCode}
-            copyKey="btn-hook"
-            onCopy={handleCopy}
-            copiedKey={copiedKey}
-          />
+          <CodeBlock code={hookCode} copyKey="btn-hook" onCopy={handleCopy} copiedKey={copiedKey} />
         </>
       ),
     },
@@ -266,16 +226,11 @@ if (verification.isValid) {
       icon: ShieldCheck,
       body: (
         <>
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+          <p className="text-body text-ink-3 mb-5 leading-relaxed">
             SaaS backends should verify payment receipts with a single
-            cryptographic RPC check on Arc before provisioning service access:
+            cryptographic RPC check on Arc before provisioning service access.
           </p>
-          <CodeBlock
-            code={serverCode}
-            copyKey="btn-server"
-            onCopy={handleCopy}
-            copiedKey={copiedKey}
-          />
+          <CodeBlock code={serverCode} copyKey="btn-server" onCopy={handleCopy} copiedKey={copiedKey} />
         </>
       ),
     },
@@ -284,74 +239,34 @@ if (verification.isValid) {
       title: 'Arc network parameters',
       icon: Zap,
       body: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-xl border border-border bg-white/70 p-5 space-y-2 font-mono text-xs">
-            <div className="text-emerald-700 font-bold mb-3 font-sans text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-line border border-line rounded-ctl overflow-hidden">
+          <div className="bg-raised p-5 space-y-2 font-mono text-tiny">
+            <div className="text-accent font-medium mb-3 font-sans text-tiny uppercase tracking-mono-cap">
               Arc Testnet
             </div>
+            <div className="flex justify-between"><span className="text-ink-3">Chain ID</span><span className="text-ink">5042002</span></div>
+            <div className="flex justify-between"><span className="text-ink-3">RPC URL</span><span className="text-ink truncate">https://rpc.testnet.arc.io</span></div>
+            <div className="flex justify-between"><span className="text-ink-3">Gas asset</span><span className="text-accent">USDC · 18d</span></div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Chain ID:</span>
-              <span className="text-foreground">5042002</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">RPC URL:</span>
-              <span className="text-foreground truncate">https://rpc.testnet.arc.io</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Gas asset:</span>
-              <span className="text-primary">USDC (18 decimals)</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Explorer:</span>
-              <span className="text-foreground truncate">
-                <a
-                  href="https://explorer.testnet.arc.io"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-primary hover:underline"
-                >
-                  explorer.testnet.arc.io
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Faucet:</span>
-              <a
-                href="https://faucet.circle.com"
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary hover:underline"
-              >
-                faucet.circle.com
+              <span className="text-ink-3">Explorer</span>
+              <a href="https://explorer.testnet.arc.io" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent hover:text-accent-2">
+                explorer.testnet.arc.io<ExternalLink className="w-3 h-3" />
               </a>
             </div>
+            <div className="flex justify-between">
+              <span className="text-ink-3">Faucet</span>
+              <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" className="text-accent hover:text-accent-2">faucet.circle.com</a>
+            </div>
           </div>
-
-          <div className="rounded-xl border border-border bg-white/70 p-5 space-y-2 font-mono text-xs">
-            <div className="text-foreground font-bold mb-3 font-sans text-sm">
+          <div className="bg-raised p-5 space-y-2 font-mono text-tiny">
+            <div className="text-ink font-medium mb-3 font-sans text-tiny uppercase tracking-mono-cap">
               Arc Mainnet
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Chain ID:</span>
-              <span className="text-foreground">5042</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">RPC URL:</span>
-              <span className="text-foreground truncate">https://rpc.mainnet.arc.io</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Gas asset:</span>
-              <span className="text-primary">USDC (18 decimals)</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Explorer:</span>
-              <span className="text-foreground truncate">https://explorer.arc.io</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Protocol fee:</span>
-              <span className="text-primary">0.40% (40 bps)</span>
-            </div>
+            <div className="flex justify-between"><span className="text-ink-3">Chain ID</span><span className="text-ink">5042</span></div>
+            <div className="flex justify-between"><span className="text-ink-3">RPC URL</span><span className="text-ink truncate">https://rpc.mainnet.arc.io</span></div>
+            <div className="flex justify-between"><span className="text-ink-3">Gas asset</span><span className="text-accent">USDC · 18d</span></div>
+            <div className="flex justify-between"><span className="text-ink-3">Explorer</span><span className="text-ink">https://explorer.arc.io</span></div>
+            <div className="flex justify-between"><span className="text-ink-3">Protocol fee</span><span className="text-accent">0.40% (40 bps)</span></div>
           </div>
         </div>
       ),
@@ -359,40 +274,27 @@ if (verification.isValid) {
   ];
 
   return (
-    <div className="pt-28 pb-16 min-h-[85vh] relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        {/* Header */}
-        <div className="max-w-3xl mb-12">
+    <div className="pt-28 pb-20 min-h-[85vh]">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-10">
+        <Reveal className="max-w-2xl mb-12">
           <Eyebrow className="mb-4">Documentation</Eyebrow>
-          <h1 className="text-3xl sm:text-5xl font-sentient text-foreground tracking-tight">
+          <h1 className="text-h1 sm:text-display font-semibold text-ink leading-[1.02] tracking-[-0.02em]">
             Developer guides &amp;{' '}
-            <i className="font-light italic text-primary">SDK reference</i>
+            <span className="font-medium italic text-accent">SDK reference</span>.
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base mt-3 leading-relaxed">
-            Everything you need to accept native USDC payments on Arc Layer-1
-            with 0.40% protocol fees and ~600ms finality.
-          </p>
-        </div>
+        </Reveal>
 
-        <div className="space-y-12">
+        <div className="space-y-px bg-line border border-line rounded-ctl overflow-hidden">
           {sections.map((s, i) => {
             const Icon = s.icon;
             return (
-              <section
-                key={s.id}
-                id={s.id}
-                className="rounded-2xl border border-border bg-card p-6 sm:p-8 scroll-mt-28"
-              >
-                <h2 className="font-sentient text-xl text-foreground mb-4 flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-700/20 text-primary flex items-center justify-center">
+              <section key={s.id} id={s.id} className="bg-canvas p-6 sm:p-8 scroll-mt-28">
+                <h2 className="text-h5 font-medium text-ink mb-5 flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-ctl bg-raised border border-line text-accent flex items-center justify-center">
                     <Icon className="w-4 h-4" />
                   </span>
-                  <span>
-                    <span className="text-primary font-mono text-sm mr-2">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    {s.title}
-                  </span>
+                  <span className="font-mono text-tiny text-accent">{String(i + 1).padStart(2, '0')}</span>
+                  <span>{s.title}</span>
                 </h2>
                 {s.body}
               </section>

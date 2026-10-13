@@ -1,102 +1,225 @@
 import Link from 'next/link';
 import { Hero } from '@/components/hero';
-import { DemoTeaser } from '@/components/demo-teaser';
-import { ComparisonSection } from '@/components/comparison';
+import { CinemaPanel } from '@/components/cinema-panel';
 import { BentoFeatures } from '@/components/bento-features';
+import { Marquee, Reveal } from '@/components/motion';
 import { Eyebrow } from '@/components/eyebrow';
-import { Reveal } from '@/components/motion';
 import { Button } from '@/components/ui/button';
-import { ArrowUpRight } from 'lucide-react';
+import { Terminal, ArrowUpRight, Check } from 'lucide-react';
 
-function FlowSection() {
-  const steps = [
-    {
-      step: '01',
-      title: 'Customer clicks checkout',
-      desc: 'No token approvals. The modal connects the wallet and formats a single native USDC gas transaction.',
-    },
-    {
-      step: '02',
-      title: '~600ms deterministic settlement',
-      desc: 'The payment settles on Arc Layer-1 via ArcPaymentGateway.sol with cryptographically irreversible sub-second finality.',
-    },
-    {
-      step: '03',
-      title: '99.60% to merchant wallet',
-      desc: '0.40% routes to the ArcPay treasury; the rest is deposited directly into the merchant wallet. Zero custody.',
-    },
-    {
-      step: '04',
-      title: 'Verify with one RPC call',
-      desc: 'Backends call verifyArcPayment() for a direct cryptographic check. Client-side streams update the dashboard live.',
-    },
-  ];
+const STEPS = [
+  {
+    step: '01',
+    title: 'Customer clicks checkout',
+    desc: '1-click wallet connect with zero ERC-20 approval friction.',
+  },
+  {
+    step: '02',
+    title: '~600ms settlement',
+    desc: 'Sub-second deterministic confirmation on Arc Layer-1.',
+  },
+  {
+    step: '03',
+    title: '99.60% to wallet',
+    desc: 'Instant deposit into the merchant wallet, no custody or escrow.',
+  },
+  {
+    step: '04',
+    title: 'Instant verification',
+    desc: 'Direct RPC verification plus HMAC-signed webhooks for backend automation.',
+  },
+];
 
+const MARQUEE = [
+  'Native USDC gas',
+  'Sub-second finality',
+  '0.40% protocol fee',
+  '99.60% to merchant',
+  '1-click checkout',
+  'Non-custodial routing',
+  'HMAC-signed webhooks',
+  'Open-source MIT',
+  'Arc L1 · 5042002',
+];
+
+function StepsSection() {
   return (
-    <section className="py-24 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        <Reveal className="max-w-2xl mx-auto text-center mb-14">
-          <Eyebrow className="justify-center mb-6">How it works</Eyebrow>
-          <h2 className="text-4xl sm:text-5xl font-sentient text-foreground tracking-tight">
-            Click to wallet in <i className="font-light italic text-primary">four steps</i>
+    <section className="py-24 border-b border-line">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-10">
+        <Reveal className="max-w-2xl mb-12">
+          <Eyebrow className="mb-6">How it works</Eyebrow>
+          <h2 className="text-h2 sm:text-display font-semibold text-ink leading-[1.02] tracking-[-0.02em]">
+            Click to wallet in{' '}
+            <span className="font-medium italic text-accent">four steps</span>.
           </h2>
         </Reveal>
 
-        <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {steps.map((s, i) => (
-            <Reveal key={s.step} delay={i * 0.06} className="h-full">
-              <li className="relative h-full px-6 py-8 lg:border-l lg:border-border first:lg:border-l-0">
-                <span className="block font-mono text-[11px] font-bold text-primary mb-5 tracking-widest">
-                  {s.step}
-                </span>
-                <h3 className="font-sentient text-lg text-foreground mb-2.5 leading-snug">
-                  {s.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {s.desc}
-                </p>
+        <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-ctl overflow-hidden">
+          {STEPS.map((s) => (
+            <Reveal key={s.step} className="bg-surface">
+              <li className="relative h-full p-7">
+                <div className="font-mono text-nano uppercase tracking-mono-cap text-accent mb-5">
+                  / {s.step}
+                </div>
+                <h3 className="text-h6 font-medium text-ink mb-2 leading-snug">{s.title}</h3>
+                <p className="text-tiny text-ink-3 leading-relaxed">{s.desc}</p>
               </li>
             </Reveal>
           ))}
         </ol>
+      </div>
+    </section>
+  );
+}
 
-        {/* Conic CTA banner */}
-        <Reveal className="mt-12">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-white/70 px-8 py-14 sm:px-14 text-center">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 [background:conic-gradient(from_90deg_at_50%_-10%,rgba(16,185,129,0.12),transparent_30%,rgba(5,150,105,0.10),transparent_65%,rgba(16,185,129,0.12))]"
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-40 [background:radial-gradient(60%_120%_at_50%_130%,rgba(14,122,84,0.16),transparent_70%)]"
-            />
+function CodeSection() {
+  return (
+    <section className="py-24 border-b border-line">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          <Reveal className="lg:col-span-5">
+            <Eyebrow className="mb-6">One line</Eyebrow>
+            <h2 className="text-h2 sm:text-display font-semibold text-ink leading-[1.02] tracking-[-0.02em]">
+              From <code className="font-mono text-accent text-h2">npm i</code> to{' '}
+              <span className="font-medium italic text-accent">live checkout</span>.
+            </h2>
+            <p className="mt-5 text-lead text-ink-3 max-w-md leading-relaxed">
+              A React component, a web component, and a headless hook — all
+              one npm package. Bring your own UI; ArcPay handles the rail.
+            </p>
 
-            <div className="relative">
-              <h3 className="text-3xl sm:text-4xl font-sentient text-foreground mb-4">
-                Ready to accept payments on Arc?
-              </h3>
-              <p className="text-muted-foreground text-[15px] max-w-xl mx-auto mb-8 leading-relaxed">
-                Install <code className="font-mono text-xs text-primary">@arcpay/sdk</code> or
-                generate a standalone hosted PayLink in seconds - zero code
-                required.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/create">
-                  <Button
-                    size="lg"
-                    className="gap-2 text-[15px] [background:conic-gradient(from_180deg_at_50%_120%,#065F46_0deg,#0E7A54_120deg,#10B981_200deg,#065F46_360deg)]"
-                  >
-                    Create a PayLink now
-                    <ArrowUpRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-                <Link href="/docs">
-                  <Button size="lg" variant="outline">
-                    Read developer documentation
-                  </Button>
-                </Link>
+            <ul className="mt-8 space-y-3 text-tiny text-ink-2">
+              {[
+                'React: <ArcPayButton />',
+                'Web: <arc-pay-button>',
+                'Hook: useCheckout()',
+                'Server: verifyArcPayment()',
+              ].map((t) => (
+                <li key={t} className="flex items-center gap-2 font-mono">
+                  <Check className="w-3.5 h-3.5 text-accent" />
+                  <span className="text-ink">{t}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-8 flex gap-3">
+              <Link href="/docs">
+                <Button variant="outline" className="gap-2">
+                  <Terminal className="w-3.5 h-3.5" />
+                  Read developer docs
+                </Button>
+              </Link>
+              <Link
+                href="https://github.com"
+                className="inline-flex items-center gap-1.5 text-tiny text-ink-2 hover:text-ink transition-colors self-center"
+              >
+                View on GitHub <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </Reveal>
+
+          <Reveal className="lg:col-span-7" delay={0.05}>
+            <div className="rounded-ctl border border-line bg-raised overflow-hidden">
+              <div className="flex items-center gap-2 px-3.5 h-10 border-b border-line">
+                <span className="w-1.5 h-1.5 rounded-full bg-ink-3" />
+                <span className="w-1.5 h-1.5 rounded-full bg-ink-3" />
+                <span className="w-1.5 h-1.5 rounded-full bg-ink-3" />
+                <span className="ml-2 text-nano uppercase tracking-mono-cap text-ink-3 font-mono">
+                  checkout.tsx
+                </span>
               </div>
+              <pre className="px-5 py-5 font-mono text-tiny leading-relaxed text-ink overflow-x-auto">
+                <code>
+                  <span className="text-ink-3">import</span>{' '}
+                  <span className="text-ink">{`{`}</span>{' '}
+                  <span className="text-accent">ArcPayButton</span>{' '}
+                  <span className="text-ink">{`}`}</span>{' '}
+                  <span className="text-ink-3">from</span>{' '}
+                  <span className="text-ink">'@arcpay/sdk/react'</span>
+                  <span className="text-ink-3">;</span>
+                  {'\n\n'}
+                  <span className="text-ink-3">export default function</span>{' '}
+                  <span className="text-accent">Pricing</span>
+                  <span className="text-ink">() {`{`}</span>
+                  {'\n  '}
+                  <span className="text-ink-3">return</span>{' '}
+                  <span className="text-ink">(</span>
+                  {'\n    '}
+                  <span className="text-ink-3">{'<'}</span>
+                  <span className="text-accent">ArcPayButton</span>
+                  {'\n      '}
+                  <span className="text-ink">merchant</span>
+                  <span className="text-ink-3">=</span>
+                  <span className="text-ink">{'"{0x91ad…7b22}"'}</span>
+                  {'\n      '}
+                  <span className="text-ink">amount</span>
+                  <span className="text-ink-3">=</span>
+                  <span className="text-ink">{`{29}`}</span>
+                  {'\n      '}
+                  <span className="text-ink">currency</span>
+                  <span className="text-ink-3">=</span>
+                  <span className="text-ink">"USDC"</span>
+                  {'\n      '}
+                  <span className="text-ink">orderId</span>
+                  <span className="text-ink-3">=</span>
+                  <span className="text-ink">{`{order.id}`}</span>
+                  {'\n      '}
+                  <span className="text-ink">metadata</span>
+                  <span className="text-ink-3">=</span>
+                  <span className="text-ink">{`{`} tier: 'pro' {`}`}</span>
+                  {'\n      '}
+                  <span className="text-ink">theme</span>
+                  <span className="text-ink-3">=</span>
+                  <span className="text-ink">"instrument"</span>
+                  {'\n    {'}
+                  <span className="text-ink-3">{'>'}</span>
+                  {'\n      '}
+                  <span className="text-ink">Subscribe — $29 USDC</span>
+                  {'\n    </'}
+                  <span className="text-accent">ArcPayButton</span>
+                  <span className="text-ink-3">{'>'}</span>
+                  {'\n  '}
+                  <span className="text-ink">);</span>
+                  {'\n'}<span className="text-ink">{`}`}</span>
+                </code>
+              </pre>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ClosingSection() {
+  return (
+    <section className="py-24 border-b border-line relative overflow-hidden">
+      <div className="absolute inset-0 halftone opacity-30 pointer-events-none" aria-hidden />
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-10 relative z-10">
+        <Reveal>
+          <div className="rounded-ctl border border-line bg-surface p-10 lg:p-14 text-center">
+            <Eyebrow className="justify-center inline-flex mb-6">Build with ArcPay</Eyebrow>
+            <h2 className="text-h2 sm:text-display font-semibold text-ink leading-[1.02] tracking-[-0.02em] max-w-3xl mx-auto">
+              Ready to accept payments on{' '}
+              <span className="font-medium italic text-accent">Arc</span>?
+            </h2>
+            <p className="mt-5 text-lead text-ink-3 max-w-xl mx-auto leading-relaxed">
+              Install the SDK or generate a hosted PayLink in seconds — zero
+              custody, zero chargebacks, zero hidden fees.
+            </p>
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link href="/create">
+                <Button size="lg" className="gap-2">
+                  Create a PayLink
+                  <ArrowUpRight className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Link href="/docs">
+                <Button size="lg" variant="outline" className="gap-2">
+                  <Terminal className="w-3.5 h-3.5" />
+                  Read the docs
+                </Button>
+              </Link>
             </div>
           </div>
         </Reveal>
@@ -109,10 +232,12 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <CinemaPanel />
       <BentoFeatures />
-      <DemoTeaser />
-      <ComparisonSection />
-      <FlowSection />
+      <StepsSection />
+      <CodeSection />
+      <Marquee items={MARQUEE} />
+      <ClosingSection />
     </>
   );
 }

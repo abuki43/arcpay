@@ -14,16 +14,16 @@ export function KpiCard({ label, value, sub, icon, accent, className }: KpiCardP
   return (
     <div
       className={cn(
-        'rounded-2xl border border-border bg-card p-6',
-        accent && 'border-emerald-700/25 bg-gradient-to-b from-emerald-50 to-card',
+        'rounded-ctl border border-line bg-surface p-5',
+        accent && 'border-accent/30 bg-accent/[0.06]',
         className
       )}
     >
-      <div className="flex justify-between items-start mb-2">
+      <div className="flex justify-between items-start mb-3">
         <span
           className={cn(
-            'text-xs font-medium uppercase tracking-wider',
-            accent ? 'text-primary font-bold' : 'text-muted-foreground'
+            'text-nano font-medium uppercase tracking-mono-cap',
+            accent ? 'text-accent' : 'text-ink-3'
           )}
         >
           {label}
@@ -31,10 +31,10 @@ export function KpiCard({ label, value, sub, icon, accent, className }: KpiCardP
         {icon && (
           <div
             className={cn(
-              'p-2 rounded-lg',
+              'w-8 h-8 rounded-ctl border flex items-center justify-center',
               accent
-                ? 'bg-white text-primary border border-emerald-700/20'
-                : 'bg-emerald-50 text-primary'
+                ? 'bg-accent/10 border-accent/30 text-accent'
+                : 'bg-raised border-line text-ink-2'
             )}
           >
             {icon}
@@ -43,14 +43,14 @@ export function KpiCard({ label, value, sub, icon, accent, className }: KpiCardP
       </div>
       <div
         className={cn(
-          'font-mono text-2xl sm:text-3xl font-bold tabular-nums',
-          accent ? 'text-primary' : 'text-foreground'
+          'font-mono text-h4 font-medium tabular-nums leading-none',
+          accent ? 'text-accent' : 'text-ink'
         )}
       >
         {value}
       </div>
       {sub && (
-        <div className={cn('text-[11px] mt-2', accent ? 'text-primary/80' : 'text-muted-foreground')}>
+        <div className={cn('text-tiny mt-2', accent ? 'text-ink-2' : 'text-ink-3')}>
           {sub}
         </div>
       )}

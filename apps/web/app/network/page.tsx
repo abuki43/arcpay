@@ -12,6 +12,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { KpiCard } from '@/components/kpi-card';
 import { useSettlementFeed } from '@/lib/use-settlement-feed';
+import { Eyebrow } from '@/components/eyebrow';
+import { Reveal } from '@/components/motion';
+import { Input } from '@/components/ui/input';
 import {
   Activity,
   Copy,
@@ -36,7 +39,6 @@ export default function NetworkStatsPage() {
     chainId,
     query: { refetchInterval: 15_000 },
   });
-
   const { data: totalFees } = useReadContract({
     address: gatewayAddress,
     abi: ARC_PAYMENT_GATEWAY_ABI,
@@ -44,7 +46,6 @@ export default function NetworkStatsPage() {
     chainId,
     query: { refetchInterval: 15_000 },
   });
-
   const { data: totalTxs } = useReadContract({
     address: gatewayAddress,
     abi: ARC_PAYMENT_GATEWAY_ABI,
@@ -81,42 +82,35 @@ export default function NetworkStatsPage() {
   };
 
   return (
-    <div className="pt-28 pb-16 min-h-[85vh] relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Badge className="text-xs" variant="secondary">
-                ArcPay in aggregate
-              </Badge>
-              <span className="flex items-center gap-1.5 text-xs text-primary font-mono">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
-                <span>Live on-chain</span>
-              </span>
-            </div>
-            <h1 className="font-sentient text-3xl text-foreground tracking-tight">
-              Network analytics
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Protocol-wide volume, fees and settlements — read from the gateway
-              contract, no database.
+    <div className="pt-28 pb-20 min-h-[85vh] relative">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-10">
+        <Reveal className="mb-10">
+          <div className="flex items-center gap-3 mb-3">
+            <Badge variant="secondary">ArcPay · aggregate</Badge>
+            <span className="inline-flex items-center gap-1.5 text-tiny text-accent font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent arc-pulse" />
+              Live on-chain
+            </span>
+          </div>
+          <Eyebrow className="mb-4">Network analytics</Eyebrow>
+          <h1 className="text-h1 sm:text-display font-semibold text-ink leading-[1.02] tracking-[-0.02em]">
+            Protocol-wide{' '}
+            <span className="font-medium italic text-accent">volume</span>.
+          </h1>
+        </Reveal>
+
+        <Reveal>
+          <div className="mb-8 p-4 rounded-ctl border border-line bg-surface flex items-start gap-3">
+            <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+            <p className="text-tiny text-ink-3 leading-relaxed">
+              Aggregate data only. The network page shows totals and anonymous
+              settlement amounts — it never exposes payer identities, order
+              metadata, or split breakdowns.
             </p>
           </div>
-        </div>
+        </Reveal>
 
-        {/* Privacy framing */}
-        <div className="mb-8 p-4 rounded-2xl border border-border bg-card flex items-start gap-3">
-          <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Aggregate data only. The network page shows totals and anonymous
-            settlement amounts — it never exposes payer identities, order
-            metadata, or split breakdowns.
-          </p>
-        </div>
-
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-ctl overflow-hidden mb-10">
           <KpiCard
             label="Gross volume"
             value={`$${formatUsdc(gross)} USDC`}
@@ -127,7 +121,7 @@ export default function NetworkStatsPage() {
           <KpiCard
             label="Merchants paid"
             value={`$${formatUsdc(netDistributed)} USDC`}
-            sub="Net settled to merchants + affiliates"
+            sub="Net settled to merchants"
             icon={<PieChart className="w-4 h-4" />}
           />
           <KpiCard
@@ -144,112 +138,111 @@ export default function NetworkStatsPage() {
           />
         </div>
 
-        {/* Activity Feed */}
-        <div className="rounded-2xl border border-border bg-card overflow-hidden">
-          <div className="p-5 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h2 className="text-base font-sentient text-foreground">
-                Recent settlements
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                {isLoading
-                  ? 'Reading recent activity from Arc Layer-1...'
-                  : `${feed.length} recent settlement${feed.length === 1 ? '' : 's'} · amounts only`}
-              </p>
+        <Reveal>
+          <div className="rounded-ctl border border-line bg-surface overflow-hidden">
+            <div className="p-5 border-b border-line flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-h6 font-medium text-ink">Recent settlements</h2>
+                <p className="text-tiny text-ink-3">
+                  {isLoading
+                    ? 'Reading recent activity from Arc Layer-1…'
+                    : `${feed.length} recent settlement${feed.length === 1 ? '' : 's'} · amounts only`}
+                </p>
+              </div>
+
+              <div className="relative w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="text"
+                  placeholder="Search merchant or order…"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
             </div>
 
-            <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search merchant or order..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border bg-white/70 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
-              />
-            </div>
-          </div>
+            {error && (
+              <div className="px-5 py-3 text-tiny text-danger bg-danger/10 border-b border-danger/20">
+                Could not backfill history ({error.message}). Live updates
+                continue while this page is open.
+              </div>
+            )}
 
-          {error && (
-            <div className="px-5 py-3 text-xs text-rose-600 bg-rose-50 border-b border-rose-200">
-              Could not backfill history ({error.message}). Live updates continue
-              while this page is open.
-            </div>
-          )}
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border bg-white/60 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  <th className="py-3.5 px-5">Amount</th>
-                  <th className="py-3.5 px-5">Fee</th>
-                  <th className="py-3.5 px-5">Merchant</th>
-                  <th className="py-3.5 px-5">Order</th>
-                  <th className="py-3.5 px-5">Time</th>
-                  <th className="py-3.5 px-5 text-right">Receipt</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-xs text-muted-foreground">
-                {filteredFeed.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="py-12 text-center text-muted-foreground">
-                      No matching settlements found.
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-line bg-raised text-nano uppercase tracking-mono-cap text-ink-3 font-mono">
+                    <th className="py-3.5 px-5 font-medium">Amount</th>
+                    <th className="py-3.5 px-5 font-medium">Fee</th>
+                    <th className="py-3.5 px-5 font-medium">Merchant</th>
+                    <th className="py-3.5 px-5 font-medium">Order</th>
+                    <th className="py-3.5 px-5 font-medium">Time</th>
+                    <th className="py-3.5 px-5 font-medium text-right">Receipt</th>
                   </tr>
-                ) : (
-                  filteredFeed.map((item) => (
-                    <tr key={item.orderId} className="transition-colors hover:bg-muted/50">
-                      <td className="py-4 px-5 font-mono font-bold text-foreground text-sm tabular-nums">
-                        ${formatUsdc(item.gross)}{' '}
-                        <span className="text-xs font-normal text-muted-foreground">USDC</span>
-                      </td>
-                      <td className="py-4 px-5 font-mono text-primary tabular-nums">
-                        ${formatUsdc(item.protocolFee)}
-                      </td>
-                      <td className="py-4 px-5 font-mono text-foreground">
-                        {shortenAddress(item.merchant)}
-                      </td>
-                      <td className="py-4 px-5 font-mono">
-                        <div className="flex items-center gap-1.5">
-                          <span>{item.orderId.slice(0, 10)}...</span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(item.orderId, item.orderId)}
-                            className="text-muted-foreground hover:text-primary"
-                            title="Copy order ID"
-                          >
-                            {copiedId === item.orderId ? (
-                              <Check className="w-3 h-3 text-primary" />
-                            ) : (
-                              <Copy className="w-3 h-3" />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-4 px-5 text-muted-foreground">
-                        {new Date(item.timestamp).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </td>
-                      <td className="py-4 px-5 text-right">
-                        <a
-                          href={getExplorerTxUrl(chainId || 5042002, item.txHash)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-medium"
-                        >
-                          <span>Explorer</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
+                </thead>
+                <tbody className="divide-y divide-line text-tiny text-ink-2 font-mono">
+                  {filteredFeed.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-ink-3">
+                        No matching settlements found.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredFeed.map((item) => (
+                      <tr key={item.orderId} className="hover:bg-raised/50 transition-colors">
+                        <td className="py-3.5 px-5 font-medium text-ink tabular-nums">
+                          ${formatUsdc(item.gross)}{' '}
+                          <span className="text-ink-3">USDC</span>
+                        </td>
+                        <td className="py-3.5 px-5 text-accent tabular-nums">
+                          ${formatUsdc(item.protocolFee)}
+                        </td>
+                        <td className="py-3.5 px-5 text-ink">
+                          {shortenAddress(item.merchant)}
+                        </td>
+                        <td className="py-3.5 px-5">
+                          <div className="flex items-center gap-1.5">
+                            <span>{item.orderId.slice(0, 10)}…</span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(item.orderId, item.orderId)}
+                              className="text-ink-3 hover:text-accent"
+                              title="Copy order ID"
+                            >
+                              {copiedId === item.orderId ? (
+                                <Check className="w-3 h-3 text-accent" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-5 text-ink-3">
+                          {new Date(item.timestamp).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </td>
+                        <td className="py-3.5 px-5 text-right">
+                          <a
+                            href={getExplorerTxUrl(chainId || 5042002, item.txHash)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-accent hover:text-accent-2"
+                          >
+                            <span>Explorer</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </div>
   );

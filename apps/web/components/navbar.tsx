@@ -21,14 +21,10 @@ export function Navbar() {
   const { disconnect } = useDisconnect();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const { data: balanceData } = useBalance({
-    address,
-  });
+  const { data: balanceData } = useBalance({ address });
 
   const handleConnect = () => {
-    if (connectors.length > 0) {
-      connect({ connector: connectors[0] });
-    }
+    if (connectors.length > 0) connect({ connector: connectors[0] });
   };
 
   const navLinks = [
@@ -40,20 +36,18 @@ export function Navbar() {
   ];
 
   return (
-    <div className="fixed z-50 pt-4 sm:pt-6 top-0 left-0 w-full px-4 sm:px-6 pointer-events-none">
-      <header className="max-w-7xl mx-auto h-16 flex items-center justify-between px-5 sm:px-6 rounded-full border border-border/80 bg-white/70 backdrop-blur-xl shadow-[0_1px_2px_rgba(20,22,26,0.04)] pointer-events-auto">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white transition-transform group-hover:scale-105">
-            <Zap className="w-4 h-4 fill-white" />
+    <div className="fixed z-50 pt-4 sm:pt-5 top-0 left-0 w-full px-4 sm:px-6 pointer-events-none">
+      <header className="max-w-[1280px] mx-auto h-14 flex items-center justify-between px-4 sm:px-5 rounded-pill border border-line bg-canvas/80 backdrop-blur-md pointer-events-auto">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-7 h-7 rounded-ctl bg-accent flex items-center justify-center text-canvas">
+            <Zap className="w-3.5 h-3.5 fill-canvas" />
           </div>
-          <span className="font-sentient text-lg text-foreground tracking-tight leading-none">
+          <span className="text-title font-semibold text-ink tracking-tightish leading-none">
             ArcPay
           </span>
         </Link>
 
-        {/* Center Nav Links */}
-        <nav className="hidden md:flex items-center gap-7 text-[13px]">
+        <nav className="hidden md:flex items-center gap-7 text-body">
           {navLinks.map((link) => {
             const isActive =
               pathname === link.href ||
@@ -64,8 +58,8 @@ export function Navbar() {
                 href={link.href}
                 className={`transition-colors duration-150 ${
                   isActive
-                    ? 'text-primary font-semibold'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'text-ink font-medium'
+                    : 'text-ink-2 hover:text-ink'
                 }`}
               >
                 {link.label}
@@ -74,39 +68,36 @@ export function Navbar() {
           })}
         </nav>
 
-        {/* Right Action Bar */}
-        <div className="flex items-center gap-3">
-          {/* Testnet Badge */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-700/20 text-[11px] font-medium text-primary">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+        <div className="flex items-center gap-2.5">
+          <div className="hidden sm:flex items-center gap-2 px-3 h-7 rounded-pill border border-line bg-raised text-tiny font-medium text-ink-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent arc-pulse" />
             <span>Arc Testnet</span>
           </div>
 
-          {/* Wallet Connection */}
           {isConnected && address ? (
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 rounded-full border border-border bg-background hover:border-primary/40 text-foreground text-xs font-medium px-3.5 py-2 transition-all"
+                className="flex items-center gap-2 rounded-pill border border-line bg-raised hover:border-line-strong text-ink text-tiny font-medium px-3 h-8 transition-colors"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                 <span>{shortenAddress(address)}</span>
                 {balanceData && (
-                  <span className="text-primary text-[11px] hidden sm:inline">
+                  <span className="text-accent text-nano hidden sm:inline tabular-nums">
                     {parseFloat(balanceData.formatted).toFixed(2)} USDC
                   </span>
                 )}
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                <ChevronDown className="w-3 h-3 text-ink-3" />
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-60 rounded-xl border border-border bg-background shadow-lg p-2 z-50 text-xs">
-                  <div className="px-3 py-2 border-b border-border mb-1">
-                    <p className="text-[10px] text-muted-foreground">
-                      CONNECTED WALLET
+                <div className="absolute right-0 mt-2 w-64 rounded-ctl border border-line bg-raised p-1.5 z-50 text-body shadow-none">
+                  <div className="px-3 py-2.5 border-b border-line mb-1">
+                    <p className="text-nano uppercase tracking-mono-cap text-ink-3">
+                      Connected wallet
                     </p>
-                    <p className="text-xs text-foreground truncate mt-0.5">
+                    <p className="text-tiny text-ink truncate mt-1 font-mono">
                       {address}
                     </p>
                   </div>
@@ -114,7 +105,7 @@ export function Navbar() {
                     href={`https://explorer.testnet.arc.io/address/${address}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 text-ink-2 hover:text-ink hover:bg-inset rounded-chip transition-colors"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     ArcScan Explorer
@@ -125,7 +116,7 @@ export function Navbar() {
                       disconnect();
                       setDropdownOpen(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors mt-1"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-danger hover:bg-danger/10 rounded-chip transition-colors mt-0.5"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     Disconnect
@@ -134,7 +125,11 @@ export function Navbar() {
               )}
             </div>
           ) : (
-            <Button onClick={handleConnect} className="h-9 px-4 text-xs gap-2">
+            <Button
+              onClick={handleConnect}
+              size="sm"
+              className="gap-2"
+            >
               <Wallet className="w-3.5 h-3.5" />
               Connect
             </Button>

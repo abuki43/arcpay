@@ -3,199 +3,215 @@
 import React from 'react';
 import { Eyebrow } from './eyebrow';
 import { Reveal } from './motion';
-import { Zap, ShieldCheck, Clock, Cpu } from 'lucide-react';
+import { Zap, ShieldCheck, Clock, Cpu, ArrowUpRight } from 'lucide-react';
+
+function CodeBlock({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-ctl border border-line bg-raised overflow-hidden">
+      <div className="flex items-center gap-2 px-3.5 h-8 border-b border-line">
+        <span className="w-1.5 h-1.5 rounded-full bg-ink-3" />
+        <span className="w-1.5 h-1.5 rounded-full bg-ink-3" />
+        <span className="w-1.5 h-1.5 rounded-full bg-ink-3" />
+        <span className="ml-2 text-nano uppercase tracking-mono-cap text-ink-3 font-mono">
+          server.ts
+        </span>
+      </div>
+      <pre className="px-4 py-3.5 font-mono text-tiny leading-relaxed text-ink overflow-x-auto">
+        <code>{children}</code>
+      </pre>
+    </div>
+  );
+}
+
+function Number({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      aria-hidden
+      className="absolute right-5 top-4 font-mono text-nano uppercase tracking-mono-cap text-ink-3"
+    >
+      / {children}
+    </span>
+  );
+}
 
 export function BentoFeatures() {
   return (
-    <section className="py-24 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        <Reveal className="max-w-2xl mx-auto text-center mb-14">
-          <Eyebrow className="justify-center mb-6">Architecture</Eyebrow>
-          <h2 className="text-4xl sm:text-5xl font-sentient text-foreground tracking-tight">
+    <section className="py-24 border-b border-line">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-10">
+        <Reveal className="max-w-2xl mb-12">
+          <Eyebrow className="mb-6">Architecture</Eyebrow>
+          <h2 className="text-h2 sm:text-display font-semibold text-ink leading-[1.02] tracking-[-0.02em]">
             Engineered for one property:{' '}
-            <i className="font-light italic text-primary">speed</i>
+            <span className="font-medium italic text-accent">speed</span>.
           </h2>
         </Reveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-          {/* 01 — Sub-second settlement */}
-          <Reveal className="md:col-span-7">
-            <div className="relative h-full rounded-2xl border border-border bg-card p-8 flex flex-col justify-between group hover:border-primary/30 transition-colors">
-              <span
-                aria-hidden
-                className="absolute right-7 top-5 font-sentient text-[5.5rem] leading-none text-primary/[0.07] select-none"
-              >
-                01
-              </span>
-              <div className="relative">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-700/20 text-primary flex items-center justify-center">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                  <div className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-700/20 text-primary font-mono text-[11px] flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
-                    <span>BLOCK TIME: ~600MS</span>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-px bg-line border border-line rounded-ctl overflow-hidden">
+          {/* 01 — sub-second finality (col-span-7) */}
+          <Reveal className="md:col-span-7 bg-surface">
+            <div className="relative h-full p-7 flex flex-col">
+              <Number>01</Number>
+              <div className="flex items-start justify-between mb-5">
+                <div className="w-9 h-9 rounded-ctl border border-line bg-raised text-accent flex items-center justify-center">
+                  <Clock className="w-4 h-4" />
                 </div>
-
-                <h3 className="text-xl font-sentient text-foreground mb-2">
-                  Sub-second deterministic finality
-                </h3>
-                <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-                  Ethereum takes 15 seconds, credit cards take three days. Arc
-                  settles a payment in a single ~600ms block — no waiting
-                  screens, no pending spinners.
-                </p>
+                <div className="inline-flex items-center gap-1.5 px-2 h-6 rounded-pill border border-line bg-raised text-nano uppercase tracking-mono-cap text-ink-2 font-mono">
+                  <span className="w-1 h-1 rounded-full bg-accent arc-pulse" />
+                  ~600ms
+                </div>
               </div>
+              <h3 className="text-h5 font-medium text-ink mb-1.5">Sub-second finality</h3>
+              <p className="text-body text-ink-3 mb-6 max-w-md leading-relaxed">
+                A single Arc L1 block settles each order. No waiting spinners,
+                no pending banners, no chargeback windows.
+              </p>
 
-              <div className="rounded-xl border border-border bg-white/70 p-5 font-mono text-xs space-y-4">
+              <div className="mt-auto rounded-ctl border border-line bg-raised p-4 font-mono text-tiny space-y-3">
                 <div>
-                  <div className="flex justify-between items-center text-[11px] mb-2">
-                    <span className="text-primary font-bold flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5 fill-primary" />
-                      <span>Arc Layer-1</span>
-                    </span>
-                    <span className="text-primary font-bold">~600ms Finality</span>
+                  <div className="flex justify-between text-nano uppercase tracking-mono-cap text-accent mb-1.5">
+                    <span>Arc Layer-1</span>
+                    <span className="tabular-nums">~600ms</span>
                   </div>
-                  <div className="w-full h-3 bg-border rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-600 rounded-full arc-pulse-bar" />
+                  <div className="h-1.5 rounded-pill bg-inset overflow-hidden">
+                    <div className="h-full w-[6%] bg-accent" />
                   </div>
                 </div>
-
                 <div>
-                  <div className="flex justify-between items-center text-[11px] mb-2 text-muted-foreground">
-                    <span>Ethereum / Rollups</span>
-                    <span>12,000ms - 60,000ms</span>
+                  <div className="flex justify-between text-nano uppercase tracking-mono-cap text-ink-3 mb-1.5">
+                    <span>Ethereum L2</span>
+                    <span className="tabular-nums">2 000–15 000ms</span>
                   </div>
-                  <div className="w-full h-2 bg-border rounded-full overflow-hidden">
-                    <div className="h-full bg-zinc-300 rounded-full w-1/4" />
+                  <div className="h-1.5 rounded-pill bg-inset overflow-hidden">
+                    <div className="h-full w-[34%] bg-ink-3/40" />
                   </div>
                 </div>
-
                 <div>
-                  <div className="flex justify-between items-center text-[11px] mb-2 text-muted-foreground">
-                    <span>Stripe Credit Card ACH</span>
-                    <span>259,200,000ms (3 Days)</span>
+                  <div className="flex justify-between text-nano uppercase tracking-mono-cap text-ink-3 mb-1.5">
+                    <span>Card ACH</span>
+                    <span className="tabular-nums">3 days</span>
                   </div>
-                  <div className="w-full h-2 bg-border rounded-full overflow-hidden">
-                    <div className="h-full bg-zinc-300 rounded-full w-1/12" />
+                  <div className="h-1.5 rounded-pill bg-inset overflow-hidden">
+                    <div className="h-full w-1/12 bg-ink-3/30" />
                   </div>
                 </div>
               </div>
             </div>
           </Reveal>
 
-          {/* 02 — 1-click vs approvals */}
-          <Reveal className="md:col-span-5" delay={0.06}>
-            <div className="relative h-full rounded-2xl border border-border bg-card p-8 flex flex-col justify-between group hover:border-primary/30 transition-colors">
-              <span
-                aria-hidden
-                className="absolute right-7 top-5 font-sentient text-[5.5rem] leading-none text-primary/[0.07] select-none"
-              >
-                02
-              </span>
-              <div className="relative">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-700/20 text-primary flex items-center justify-center mb-6">
-                  <Zap className="w-5 h-5 fill-primary" />
-                </div>
-                <h3 className="text-xl font-sentient text-foreground mb-2">
-                  Pure native USDC gas
-                </h3>
-                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                  Zero approval steps. 1 USDC = 1 USD through the entire stack
-                  — no volatile gas token friction.
-                </p>
+          {/* 02 — 1-click vs approvals (col-span-5) */}
+          <Reveal className="md:col-span-5 bg-surface" delay={0.05}>
+            <div className="relative h-full p-7 flex flex-col">
+              <Number>02</Number>
+              <div className="w-9 h-9 rounded-ctl border border-line bg-raised text-accent flex items-center justify-center mb-5">
+                <Zap className="w-4 h-4 fill-accent" />
               </div>
+              <h3 className="text-h5 font-medium text-ink mb-1.5">Pure native USDC gas</h3>
+              <p className="text-body text-ink-3 mb-6 max-w-md leading-relaxed">
+                One transaction. USDC is Arc's native gas asset, so payment
+                rides on <code className="font-mono text-tiny text-ink">msg.value</code>.
+                No <code className="font-mono text-tiny text-ink">approve()</code> step.
+              </p>
 
-              <div className="rounded-xl border border-border bg-white/70 p-4 font-mono text-xs space-y-3 text-[11px]">
-                <div className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50 border border-emerald-700/25">
+              <div className="mt-auto rounded-ctl border border-line bg-raised p-4 font-mono text-tiny divide-y divide-line">
+                <div className="flex items-center justify-between py-2.5">
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-primary text-white font-bold flex items-center justify-center text-[10px]">
-                      1
-                    </div>
-                    <span className="text-primary font-bold text-[11px]">ArcPay 1-Click</span>
+                    <span className="w-4 h-4 rounded-full bg-accent text-canvas flex items-center justify-center text-[9px] font-bold">1</span>
+                    <span className="text-ink">ArcPay 1-click</span>
                   </div>
-                  <span className="text-primary font-bold text-[10px]">1 Transaction</span>
+                  <span className="text-accent uppercase tracking-mono-cap text-nano">1 tx</span>
                 </div>
-                <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted opacity-70">
+                <div className="flex items-center justify-between py-2.5">
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-zinc-400 text-white font-bold flex items-center justify-center text-[10px]">
-                      2
-                    </div>
-                    <span className="text-muted-foreground text-[11px]">Standard ERC-20</span>
+                    <span className="w-4 h-4 rounded-full bg-inset text-ink-2 flex items-center justify-center text-[9px] font-bold">2</span>
+                    <span className="text-ink-2">EVM USDC</span>
                   </div>
-                  <span className="text-rose-500 text-[10px]">Approve + Transfer</span>
+                  <span className="text-danger uppercase tracking-mono-cap text-nano">approve + transfer</span>
                 </div>
               </div>
             </div>
           </Reveal>
 
-          {/* 03 — 0.40% split */}
-          <Reveal className="md:col-span-5" delay={0.06}>
-            <div className="relative h-full rounded-2xl border border-border bg-card p-8 flex flex-col justify-between group hover:border-primary/30 transition-colors">
-              <span
-                aria-hidden
-                className="absolute right-7 top-5 font-sentient text-[5.5rem] leading-none text-primary/[0.07] select-none"
-              >
-                03
-              </span>
-              <div className="relative">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-700/20 text-primary flex items-center justify-center mb-6">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <h3 className="text-xl font-sentient text-foreground mb-2">
-                  Instant non-custodial split
-                </h3>
-                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                  99.60% straight to your merchant wallet. 0.40% to the
-                  protocol. No escrow, ever.
-                </p>
+          {/* 03 — 0.40% split (col-span-5) */}
+          <Reveal className="md:col-span-5 bg-surface" delay={0.05}>
+            <div className="relative h-full p-7 flex flex-col">
+              <Number>03</Number>
+              <div className="w-9 h-9 rounded-ctl border border-line bg-raised text-accent flex items-center justify-center mb-5">
+                <ShieldCheck className="w-4 h-4" />
               </div>
+              <h3 className="text-h5 font-medium text-ink mb-1.5">Non-custodial split</h3>
+              <p className="text-body text-ink-3 mb-6 max-w-md leading-relaxed">
+                Settlement routes 99.60% directly to the merchant wallet. The
+                0.40% protocol fee lands in the ArcPay treasury in the same block.
+              </p>
 
-              <div className="p-4 rounded-xl border border-border bg-white/70 font-mono text-xs space-y-2">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Customer Pays:</span>
-                  <span className="font-bold text-foreground">$100.00 USDC</span>
+              <div className="mt-auto rounded-ctl border border-line bg-raised p-4 font-mono text-tiny divide-y divide-line">
+                <div className="flex justify-between py-2 text-ink-3">
+                  <span>Customer pays</span>
+                  <span className="text-ink font-medium tabular-nums">100.000 USDC</span>
                 </div>
-                <div className="flex justify-between text-primary font-bold">
-                  <span>Merchant Receives (99.6%):</span>
-                  <span>$99.60 USDC</span>
+                <div className="flex justify-between py-2 text-ink">
+                  <span>Merchant (99.60%)</span>
+                  <span className="text-accent font-medium tabular-nums">99.600</span>
                 </div>
-                <div className="flex justify-between text-foreground/70 text-[11px]">
-                  <span>ArcPay Treasury (0.40%):</span>
-                  <span>$0.40 USDC</span>
+                <div className="flex justify-between py-2 text-ink-3">
+                  <span>ArcPay treasury (0.40%)</span>
+                  <span className="text-ink-2 font-medium tabular-nums">0.400</span>
                 </div>
               </div>
             </div>
           </Reveal>
 
-          {/* 04 — One RPC verification */}
-          <Reveal className="md:col-span-7" delay={0.06}>
-            <div className="relative h-full rounded-2xl border border-border bg-card p-8 flex flex-col justify-between group hover:border-primary/30 transition-colors">
-              <span
-                aria-hidden
-                className="absolute right-7 top-5 font-sentient text-[5.5rem] leading-none text-primary/[0.07] select-none"
-              >
-                04
-              </span>
-              <div className="relative">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-700/20 text-primary flex items-center justify-center mb-6">
-                  <Cpu className="w-5 h-5" />
+          {/* 04 — RPC verification (col-span-7) */}
+          <Reveal className="md:col-span-7 bg-surface" delay={0.05}>
+            <div className="relative h-full p-7 flex flex-col">
+              <Number>04</Number>
+              <div className="flex items-start justify-between mb-5">
+                <div className="w-9 h-9 rounded-ctl border border-line bg-raised text-accent flex items-center justify-center">
+                  <Cpu className="w-4 h-4" />
                 </div>
-                <h3 className="text-xl font-sentient text-foreground mb-2">
-                  One RPC call to verify
-                </h3>
-                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                  Verify any receipt server-side with a single cryptographic
-                  RPC check against Arc. No webhooks to miss, no spoofing risk.
-                </p>
+                <a
+                  href="/docs"
+                  className="inline-flex items-center gap-1 text-nano uppercase tracking-mono-cap text-ink-2 hover:text-accent transition-colors"
+                >
+                  Docs <ArrowUpRight className="w-3 h-3" />
+                </a>
               </div>
+              <h3 className="text-h5 font-medium text-ink mb-1.5">Cryptographic verification</h3>
+              <p className="text-body text-ink-3 mb-5 max-w-md leading-relaxed">
+                Verify any receipt server-side with a single direct RPC query.
+                No indexer, no third party.
+              </p>
 
-              <div className="rounded-xl border border-border bg-[#0F1115] p-4 font-mono text-xs text-emerald-200/90 overflow-x-auto">
-                <code>{`const res = await verifyArcPayment({
-  orderId, merchant, expectedAmount: 29,
-});
-if (res.isValid) await provisionSubscription();`}</code>
+              <div className="mt-auto">
+                <CodeBlock>
+                  <span className="text-ink-3">const</span>{' '}
+                  <span className="text-ink">res</span>{' '}
+                  <span className="text-ink-3">=</span>{' '}
+                  <span className="text-ink-3">await</span>{' '}
+                  <span className="text-accent">verifyArcPayment</span>
+                  <span className="text-ink">({`{`}</span>
+                  {'\n  '}
+                  <span className="text-ink">orderId</span>
+                  <span className="text-ink-3">,</span>{' '}
+                  <span className="text-ink">merchant</span>
+                  <span className="text-ink-3">,</span>{' '}
+                  <span className="text-ink">expectedAmount</span>
+                  <span className="text-ink-3">:</span>{' '}
+                  <span className="text-ink">29</span>
+                  <span className="text-ink-3">,</span>
+                  {'\n'}<span className="text-ink">{`})`}</span>
+                  <span className="text-ink-3">;</span>
+                  {'\n'}<span className="text-ink-3">if</span>{' '}
+                  <span className="text-ink">{`(`}</span>
+                  <span className="text-ink">res</span>
+                  <span className="text-ink-3">.</span>
+                  <span className="text-ink">isValid</span>
+                  <span className="text-ink">{`)`}</span>{' '}
+                  <span className="text-ink-3">await</span>{' '}
+                  <span className="text-accent">provisionSubscription</span>
+                  <span className="text-ink">{`()`}</span>
+                  <span className="text-ink-3">;</span>
+                </CodeBlock>
               </div>
             </div>
           </Reveal>
