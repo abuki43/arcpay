@@ -8,6 +8,16 @@
     "test:contracts": "cd contracts && forge test -vvv"
   },
   "devDependencies": {
+    "@prisma/client": "^6.4.1",
+    "prisma": "^6.4.1",
     "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild"
+    ]
   }
 }

@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Merchant {
+  address        String            @id
+  name           String?
+  webhookUrl     String?
+  webhookSecret  String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  payLinks       PayLink[]
+  settlements    Settlement[]
+  webhookEvents  WebhookDelivery[]
+
+  @@map("merchants")
+}
+
+model PayLink {
+  id               String            @id @default(cuid())
+  slug             String            @unique
+  merchantAddress  String
+  merchant         Merchant          @relation(fields: [merchantAddress], references: [address], onDelete: Cascade)
+  title            String
+  description      String?
+  type             String            @default("single_item") // "single_item" | "multi_plan"
+  amount           Float?            // For single_item: amount in USDC (e.g. 29.00)
+  active           Boolean           @default(true)
+  views            Int               @default(0)
+  redirectUrl      String?
+  collectEmail     Boolean           @default(false)
+  collectDiscord   Boolean           @default(false)
+  customNote       String?
+  affiliateAddress String?
+  affiliateBps     Int?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  plans            PayLinkPlan[]
+  settlements      Settlement[]
+
+  @@map("pay_links")
+}
+
+model PayLinkPlan {
+  id          String        @id @default(cuid())
+  payLinkId   String
+  payLink     PayLink       @relation(fields: [payLinkId], references: [slug], onDelete: Cascade)
+  name        String
+  tag         String?
+  amount      Float
+  interval    String?       @default("month")
+  description String?
+  features    String        // JSON stringified array e.g. ["10,000 API calls", "..."]
+  orderIndex  Int           @default(0)
+  featured    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  settlements Settlement[]
+
+  @@map("pay_link_plans")
+}
+
+model Settlement {
+  id               String        @id @default(cuid())
+  orderId          String        @unique
+  merchantAddress  String
+  merchant         Merchant      @relation(fields: [merchantAddress], references: [address], onDelete: Cascade)
+  payerAddress     String?
+  payLinkId        String?
+  payLink          PayLink?      @relation(fields: [payLinkId], references: [slug], onDelete: SetNull)
+  planId           String?
+  plan             PayLinkPlan?  @relation(fields: [planId], references: [id], onDelete: SetNull)
+  gross            String        // Raw 18-decimal wei string
+  protocolFee      String        // Raw 18-decimal wei string
+  merchantShare    String        // Raw 18-decimal wei string
+  affiliateShare   String?       // Raw 18-decimal wei string
+  affiliateAddress String?
+  kind             String        @default("direct") // "direct" | "split"
+  txHash           String        @unique
+  blockNumber      BigInt        @default(0)
+  buyerEmail       String?
+  buyerHandle      String?
+  metadata         String?       // Raw metadata JSON string
+  status           String        @default("settled")
+  timestamp        DateTime      @default(now())
+
+  @@index([merchantAddress, timestamp(sort: Desc)])
+  @@map("settlements")
+}
+
+model WebhookDelivery {
+  id              String        @id @default(cuid())
+  merchantAddress String
+  merchant        Merchant      @relation(fields: [merchantAddress], references: [address], onDelete: Cascade)
+  event           String        // e.g. "payment.settled"
+  payload         String        // JSON string
+  status          String        // "success" | "failed"
+  statusCode      Int?
+  responseBody    String?
+  attempts        Int           @default(1)
+  createdAt       DateTime      @default(now())
+
+  @@index([merchantAddress, createdAt(sort: Desc)])
+  @@map("webhook_deliveries")
+}
