@@ -32,19 +32,90 @@ import {
 } from './utils';
 
 // -----------------------------------------------------------------------------
+// Design tokens — ArcPay "Instrument" theme
+// These mirror the public ArcPay site (apps/web/app/globals.css) so the SDK
+// popup looks identical when launched from any page.
+// -----------------------------------------------------------------------------
+const T = {
+  // surfaces
+  backdrop:        'rgba(11, 11, 10, 0.85)',
+  backdropFilter:  'blur(12px)',
+  canvas:          '#0B0B0A',
+  surface:         '#141413',
+  raised:          '#1C1C1B',
+  inset:           '#232322',
+  // hairlines
+  line:            '#2A2A29',
+  lineStrong:      '#3F3E3C',
+  // ink
+  ink:             '#F0EFEC',
+  ink2:            '#B0AEA9',
+  ink3:            '#8D8B86',
+  // accent
+  accent:          '#F5A524',
+  accentHover:     '#E89216',
+  accentSurface:   'rgba(245, 165, 36, 0.10)',
+  accentBorder:    'rgba(245, 165, 36, 0.30)',
+  // semantic
+  danger:          '#E5484D',
+  dangerSurface:   'rgba(229, 72, 77, 0.10)',
+  dangerBorder:    'rgba(229, 72, 77, 0.20)',
+  // shape
+  radiusCard:      '8px',
+  radiusButton:    '6px',
+  radiusPill:      '9999px',
+  // type
+  fontSans:        'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  fontMono:        'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+} as const;
+
+const isInstrument = (theme: ArcPayTheme) =>
+  theme === 'instrument' || theme === 'instrument-light';
+const isInstrumentLight = (theme: ArcPayTheme) => theme === 'instrument-light';
+
+// -----------------------------------------------------------------------------
 // Helper: Arc Chain Hex & Parameters for Injected Wallets
 // -----------------------------------------------------------------------------
-const LightningGlyph = ({ size = 16 }: { size?: number }) => (
+const LightningGlyph = ({ size = 16, color }: { size?: number; color?: string }) => (
   <svg
     width={size}
     height={size}
     viewBox="0 0 24 24"
-    fill="currentColor"
+    fill={color || 'currentColor'}
     aria-hidden
   >
     <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
   </svg>
 );
+
+const PulseDot = ({ color = T.accent }: { color?: string }) => (
+  <span
+    aria-hidden
+    style={{
+      display: 'inline-block',
+      width: 8,
+      height: 8,
+      borderRadius: '50%',
+      background: color,
+      boxShadow: `0 0 0 0 ${color}`,
+      animation: 'arcpay-pulse 1.6s ease-in-out infinite',
+    }}
+  />
+);
+
+const PULSE_KEYFRAMES = `
+@keyframes arcpay-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.7); }
+}
+@keyframes arcpay-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arcpay-pulse { animation: none !important; }
+}
+`;
 
 function getChainParams(chainId: number, rpcUrl?: string) {
   const isTestnet = chainId === 5042002;
@@ -242,7 +313,7 @@ export function useCheckout(): UseCheckoutReturn {
 }
 
 // -----------------------------------------------------------------------------
-// Component: Checkout Modal
+// Component: Checkout Modal — Instrument theme
 // -----------------------------------------------------------------------------
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -250,6 +321,7 @@ interface CheckoutModalProps {
   params: CheckoutParams;
   onSuccess?: (receipt: PaymentReceipt) => void;
   onError?: (error: Error) => void;
+  theme?: ArcPayTheme;
 }
 
 export function CheckoutModal({
@@ -258,9 +330,12 @@ export function CheckoutModal({
   params,
   onSuccess,
   onError,
+  theme = 'instrument',
 }: CheckoutModalProps) {
   const { checkout, isConnecting, isPaying, isSuccess, error, receipt, reset } = useCheckout();
   const chainId = params.chainId || 5042002;
+  const useInstrument = isInstrument(theme);
+  const useLight = isInstrumentLight(theme);
 
   useEffect(() => {
     if (!isOpen) reset();
@@ -271,6 +346,71 @@ export function CheckoutModal({
   const grossAmount = parseUsdc(params.amount);
   const feeInfo = calculateArcFee(params.amount);
   const hasInjected = typeof window !== 'undefined' && Boolean((window as any).ethereum);
+
+  // Surface tokens for legacy themes (back-compat rendering of emerald / light)
+  const lg = !useInstrument
+    ? {
+        backdrop:    'rgba(15, 23, 42, 0.65)',
+        backdropF:   'blur(4px)',
+        card:        '#ffffff',
+        cardBorder:  'none',
+        cardShadow:  '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        box:         '#f8fafc',
+        boxBorder:   '1px solid #e2e8f0',
+        text:        '#0f172a',
+        sub:         '#64748b',
+        muted:       '#94a3b8',
+        accent:      '#047857',
+        accentBg:    '#ecfdf5',
+        accentBorder:'1px solid #a7f3d0',
+        danger:      '#991b1b',
+        dangerBg:    '#fef2f2',
+        dangerBorder:'1px solid #fecaca',
+        outlineBtn:  '#ffffff',
+        outlineBorder: '1.5px solid #047857',
+      }
+    : useLight
+    ? {
+        backdrop:    'rgba(11, 11, 10, 0.85)',
+        backdropF:   'blur(12px)',
+        card:        '#FFFFFF',
+        cardBorder:  '1px solid #E8E5DE',
+        cardShadow:  'none',
+        box:         '#F4F2EB',
+        boxBorder:   '1px solid #E8E5DE',
+        text:        '#0B0B0A',
+        sub:         '#5C5A55',
+        muted:       '#8D8B86',
+        accent:      '#0B0B0A',
+        accentBg:    '#F5A524',
+        accentBorder:'none',
+        danger:      '#991b1b',
+        dangerBg:    '#FEF2F2',
+        dangerBorder:'1px solid #FECACA',
+        outlineBtn:  '#FFFFFF',
+        outlineBorder: '1.5px solid #0B0B0A',
+      }
+    : {
+        // Default 'instrument' (dark)
+        backdrop:    T.backdrop,
+        backdropF:   T.backdropFilter,
+        card:        T.surface,
+        cardBorder:  `1px solid ${T.line}`,
+        cardShadow:  'none',
+        box:         T.raised,
+        boxBorder:   `1px solid ${T.line}`,
+        text:        T.ink,
+        sub:         T.ink2,
+        muted:       T.ink3,
+        accent:      T.accent,
+        accentBg:    T.accentSurface,
+        accentBorder:`1px solid ${T.accentBorder}`,
+        danger:      T.danger,
+        dangerBg:    T.dangerSurface,
+        dangerBorder:`1px solid ${T.dangerBorder}`,
+        outlineBtn:  'transparent',
+        outlineBorder:`1.5px solid ${T.lineStrong}`,
+      };
 
   const handlePayClick = async () => {
     try {
@@ -286,164 +426,511 @@ export function CheckoutModal({
     : '';
 
   return (
-    <div style={modalBackdropStyle} onClick={onClose}>
-      <div style={modalCardStyle} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div style={modalHeaderStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={logoIconStyle}>
-              <LightningGlyph size={18} />
-            </div>
-            <div>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a' }}>ArcPay Checkout</div>
-              <div style={{ fontSize: '12px', color: '#64748b' }}>
-                {chainId === 5042 ? 'Arc Mainnet' : 'Arc Testnet'} - Native USDC
+    <>
+      <style>{PULSE_KEYFRAMES}</style>
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: lg.backdrop,
+          backdropFilter: lg.backdropF,
+          WebkitBackdropFilter: lg.backdropF,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 999999,
+          padding: '16px',
+        }}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            backgroundColor: lg.card,
+            border: lg.cardBorder,
+            borderRadius: T.radiusCard,
+            width: '100%',
+            maxWidth: '400px',
+            padding: '20px',
+            boxShadow: lg.cardShadow,
+            fontFamily: T.fontSans,
+            color: lg.text,
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: T.radiusButton,
+                  backgroundColor: T.accent,
+                  color: T.canvas,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <LightningGlyph size={14} />
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: lg.text,
+                    fontFamily: T.fontSans,
+                    letterSpacing: '-0.005em',
+                  }}
+                >
+                  ArcPay checkout
+                </div>
+                <div
+                  style={{
+                    fontSize: '10px',
+                    color: lg.muted,
+                    fontFamily: T.fontMono,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    marginTop: '2px',
+                  }}
+                >
+                  {chainId === 5042 ? 'Arc mainnet' : 'Arc testnet'} · 5042002 · native USDC
+                </div>
               </div>
             </div>
-          </div>
-          <button style={closeBtnStyle} onClick={onClose} aria-label="Close">&times;</button>
-        </div>
-
-        {/* Order Summary Box */}
-        <div style={orderBoxStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#0f172a' }}>
-                {params.item || 'One-Time Purchase'}
-              </div>
-              <div style={{ fontSize: '12px', color: '#64748b' }}>
-                To: {shortenAddress(params.merchant)}
-              </div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '20px', fontWeight: '800', color: '#047857' }}>
-                ${formatUsdc(grossAmount)} <span style={{ fontSize: '13px', fontWeight: '600' }}>USDC</span>
-              </div>
-              <div style={{ fontSize: '11px', color: '#047857', fontWeight: '500' }}>
-                0.40% protocol fee (${feeInfo.formattedFee})
-              </div>
-            </div>
-          </div>
-
-          <div style={{ ...noticeBadgeStyle, gap: '6px' }}>
-            <LightningGlyph size={12} />
-            <span>1-click native gas - zero ERC-20 approvals</span>
-          </div>
-        </div>
-
-        {/* Dynamic Body State */}
-        {isSuccess && receipt ? (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div
+            <button
+              onClick={onClose}
+              aria-label="Close"
               style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '12px',
-                backgroundColor: '#ecfdf5',
-                color: '#047857',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 12px',
+                background: 'transparent',
+                border: `1px solid ${lg.boxBorder}`,
+                color: lg.muted,
+                padding: '4px 8px',
+                borderRadius: T.radiusButton,
+                cursor: 'pointer',
+                fontSize: '12px',
+                lineHeight: 1,
+                fontFamily: T.fontMono,
+                transition: 'border-color 0.15s ease, color 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = lg.text;
+                e.currentTarget.style.borderColor = lg.accent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = lg.muted;
+                e.currentTarget.style.borderColor = lg.boxBorder;
               }}
             >
-              <LightningGlyph size={26} />
-            </div>
-            <div style={{ fontSize: '17px', fontWeight: '700', color: '#047857', marginBottom: '4px' }}>
-              Payment settled
-            </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>
-              Confirmed in ~600ms on Arc Layer-1 {receipt.blockNumber > 0n ? `(Block #${receipt.blockNumber})` : ''}
-            </div>
-
-            <div style={receiptBoxStyle}>
-              <div style={receiptRowStyle}>
-                <span style={{ color: '#64748b' }}>Transaction</span>
-                <a
-                  href={getExplorerTxUrl(chainId, receipt.txHash)}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: '#047857', textDecoration: 'none', fontWeight: '600' }}
-                >
-                  {receipt.txHash.slice(0, 10)}...{receipt.txHash.slice(-8)} &nearr;
-                </a>
-              </div>
-              <div style={receiptRowStyle}>
-                <span style={{ color: '#64748b' }}>Order ID</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#0f172a' }}>
-                  {receipt.orderId.slice(0, 12)}...
-                </span>
-              </div>
-              <div style={receiptRowStyle}>
-                <span style={{ color: '#64748b' }}>Settled Amount</span>
-                <span style={{ fontWeight: '700', color: '#047857' }}>${formatUsdc(receipt.amount)} USDC</span>
-              </div>
-            </div>
-
-            <button style={primaryBtnStyle} onClick={onClose}>
-              Done
+              esc
             </button>
           </div>
-        ) : (
-          <div>
-            {error && (
-              <div style={errorBannerStyle}>
-                <span style={{ flexShrink: 0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                    <path d="M12 9v4" />
-                    <path d="M12 17h.01" />
-                  </svg>
-                </span>
-                <span>{error.message}</span>
-              </div>
-            )}
 
-            {hasInjected ? (
-              <button
-                style={{
-                  ...primaryBtnStyle,
-                  opacity: isConnecting || isPaying ? 0.7 : 1,
-                  cursor: isConnecting || isPaying ? 'wait' : 'pointer',
-                }}
-                disabled={isConnecting || isPaying}
-                onClick={handlePayClick}
-              >
-                {isConnecting
-                  ? 'Connecting wallet...'
-                  : isPaying
-                  ? 'Confirming on Arc (~600ms)...'
-                  : `Pay $${formatUsdc(grossAmount)} USDC`}
-              </button>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                <div style={{ fontSize: '13px', color: '#475569', marginBottom: '12px' }}>
-                  Scan with MetaMask or a mobile EVM browser:
-                </div>
-                <div style={qrBoxStyle}>
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(payLinkUrl)}`}
-                    alt="Scan to Pay"
-                    style={{ width: '150px', height: '150px', borderRadius: '8px' }}
-                  />
-                </div>
-                <a
-                  href={`https://metamask.app.link/dapp/${typeof window !== 'undefined' ? window.location.host : ''}/pay?merchant=${params.merchant}&amount=${formatUsdc(grossAmount)}&chainId=${chainId}`}
-                  style={deepLinkBtnStyle}
-                  target="_blank"
-                  rel="noreferrer"
+          {/* Order Summary Box */}
+          <div
+            style={{
+              backgroundColor: lg.box,
+              border: lg.boxBorder,
+              borderRadius: T.radiusButton,
+              padding: '14px 16px',
+              marginBottom: '12px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: '12px',
+              }}
+            >
+              <div style={{ minWidth: 0, flex: 1, paddingRight: '12px' }}>
+                <div
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: lg.text,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
-                  Open in MetaMask Mobile
-                </a>
+                  {params.item || 'One-time purchase'}
+                </div>
+                <div
+                  style={{
+                    fontSize: '10px',
+                    color: lg.muted,
+                    fontFamily: T.fontMono,
+                    marginTop: '3px',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  to {shortenAddress(params.merchant)}
+                </div>
               </div>
-            )}
-
-            <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '11px', color: '#94a3b8' }}>
-              Secured by ArcPaymentGateway - Non-custodial
+              <div style={{ textAlign: 'right' }}>
+                <div
+                  style={{
+                    fontSize: '22px',
+                    fontWeight: 600,
+                    color: lg.text,
+                    fontFamily: T.fontMono,
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1,
+                  }}
+                >
+                  ${formatUsdc(grossAmount)}
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 500,
+                      color: lg.muted,
+                      marginLeft: '4px',
+                      letterSpacing: '0.06em',
+                    }}
+                  >
+                    USDC
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontSize: '10px',
+                    color: lg.muted,
+                    fontFamily: T.fontMono,
+                    marginTop: '4px',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  fee 0.40% · ${feeInfo.formattedFee}
+                </div>
+              </div>
             </div>
           </div>
-        )}
+
+          {/* Dynamic Body State */}
+          {isSuccess && receipt ? (
+            <div style={{ textAlign: 'center', padding: '12px 0 4px' }}>
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: T.radiusButton,
+                  backgroundColor: lg.accentBg,
+                  color: lg.accent,
+                  border: lg.accentBorder,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                }}
+              >
+                <LightningGlyph size={22} />
+              </div>
+              <div
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  color: lg.text,
+                  marginBottom: '2px',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                Payment settled
+              </div>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: lg.sub,
+                  marginBottom: '16px',
+                  fontFamily: T.fontMono,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                Confirmed in ~600ms on Arc L1
+                {receipt.blockNumber > 0n ? ` · block #${receipt.blockNumber}` : ''}
+              </div>
+
+              <div
+                style={{
+                  backgroundColor: lg.box,
+                  border: lg.boxBorder,
+                  borderRadius: T.radiusButton,
+                  padding: '10px 14px',
+                  marginBottom: '14px',
+                  textAlign: 'left',
+                }}
+              >
+                <ReceiptRow
+                  label="Transaction"
+                  value={
+                    <a
+                      href={getExplorerTxUrl(chainId, receipt.txHash)}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        color: lg.accent,
+                        textDecoration: 'none',
+                        fontWeight: 500,
+                        fontFamily: T.fontMono,
+                        fontSize: '11px',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      {receipt.txHash.slice(0, 10)}…{receipt.txHash.slice(-8)} ↗
+                    </a>
+                  }
+                  muted={lg.muted}
+                  text={lg.text}
+                />
+                <ReceiptRow
+                  label="Order ID"
+                  value={
+                    <span
+                      style={{
+                        fontFamily: T.fontMono,
+                        fontSize: '11px',
+                        color: lg.text,
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      {receipt.orderId.slice(0, 14)}…
+                    </span>
+                  }
+                  muted={lg.muted}
+                  text={lg.text}
+                />
+                <ReceiptRow
+                  label="Settled"
+                  value={
+                    <span
+                      style={{
+                        fontFamily: T.fontMono,
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: lg.accent,
+                      }}
+                    >
+                      ${formatUsdc(receipt.amount)} USDC
+                    </span>
+                  }
+                  muted={lg.muted}
+                  text={lg.text}
+                  last
+                />
+              </div>
+
+              <button
+                onClick={onClose}
+                style={{
+                  width: '100%',
+                  backgroundColor: lg.accent,
+                  color: useLight ? '#FFFFFF' : T.canvas,
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  fontFamily: T.fontSans,
+                  padding: '11px 16px',
+                  borderRadius: T.radiusButton,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Done
+              </button>
+            </div>
+          ) : (
+            <div>
+              {error && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '8px',
+                    backgroundColor: lg.dangerBg,
+                    border: lg.dangerBorder,
+                    color: lg.danger,
+                    fontSize: '11px',
+                    fontFamily: T.fontMono,
+                    padding: '10px 12px',
+                    borderRadius: T.radiusButton,
+                    marginBottom: '10px',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <span style={{ flexShrink: 0, marginTop: '1px' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                      <path d="M12 9v4" />
+                      <path d="M12 17h.01" />
+                    </svg>
+                  </span>
+                  <span>{error.message}</span>
+                </div>
+              )}
+
+              {hasInjected ? (
+                <button
+                  onClick={handlePayClick}
+                  disabled={isConnecting || isPaying}
+                  className="arcpay-pulse-target"
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    backgroundColor: isConnecting || isPaying ? lg.accent + 'CC' : lg.accent,
+                    color: useLight ? '#FFFFFF' : T.canvas,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    fontFamily: T.fontSans,
+                    padding: '12px 16px',
+                    borderRadius: T.radiusButton,
+                    border: 'none',
+                    cursor: isConnecting || isPaying ? 'wait' : 'pointer',
+                    transition: 'background-color 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isConnecting && !isPaying) {
+                      e.currentTarget.style.backgroundColor = T.accentHover;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isConnecting && !isPaying) {
+                      e.currentTarget.style.backgroundColor = lg.accent;
+                    }
+                  }}
+                >
+                  {(isConnecting || isPaying) && <PulseDot color={useLight ? '#FFFFFF' : T.canvas} />}
+                  <span>
+                    {isConnecting
+                      ? 'Connecting wallet…'
+                      : isPaying
+                      ? 'Confirming on Arc (~600ms)…'
+                      : `Pay $${formatUsdc(grossAmount)} USDC`}
+                  </span>
+                </button>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: lg.sub,
+                      marginBottom: '10px',
+                      fontFamily: T.fontMono,
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    Scan with MetaMask or a mobile EVM browser:
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      padding: '8px',
+                      backgroundColor: lg.box,
+                      border: lg.boxBorder,
+                      borderRadius: T.radiusButton,
+                      marginBottom: '10px',
+                    }}
+                  >
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(payLinkUrl)}`}
+                      alt="Scan to Pay"
+                      style={{ width: '150px', height: '150px', borderRadius: '4px' }}
+                    />
+                  </div>
+                  <a
+                    href={`https://metamask.app.link/dapp/${typeof window !== 'undefined' ? window.location.host : ''}/pay?merchant=${params.merchant}&amount=${formatUsdc(grossAmount)}&chainId=${chainId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      textAlign: 'center',
+                      backgroundColor: 'transparent',
+                      color: lg.text,
+                      border: lg.outlineBorder,
+                      textDecoration: 'none',
+                      fontWeight: 500,
+                      fontFamily: T.fontSans,
+                      fontSize: '12px',
+                      padding: '10px 12px',
+                      borderRadius: T.radiusButton,
+                    }}
+                  >
+                    Open in MetaMask mobile
+                  </a>
+                </div>
+              )}
+
+              <div
+                style={{
+                  marginTop: '12px',
+                  textAlign: 'center',
+                  fontSize: '10px',
+                  color: lg.muted,
+                  fontFamily: T.fontMono,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                Secured by ArcPaymentGateway · Non-custodial
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+    </>
+  );
+}
+
+// Tiny helper component for receipt rows so the success block stays readable
+function ReceiptRow({
+  label,
+  value,
+  muted,
+  text,
+  last,
+}: {
+  label: string;
+  value: React.ReactNode;
+  muted: string;
+  text: string;
+  last?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '6px 0',
+        borderBottom: last ? 'none' : '1px solid transparent',
+      }}
+    >
+      <span
+        style={{
+          fontSize: '10px',
+          color: muted,
+          fontFamily: T.fontMono,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}
+      >
+        {label}
+      </span>
+      <span style={{ color: text }}>{value}</span>
     </div>
   );
 }
@@ -458,7 +945,7 @@ export function ArcPayButton({
   metadata,
   affiliate,
   affiliateAmount,
-  theme = 'emerald',
+  theme = 'instrument',
   label,
   size = 'md',
   className = '',
@@ -481,38 +968,39 @@ export function ArcPayButton({
     }
   }, [amount]);
 
-  const buttonStyle = useMemo(() => {
+  const useInstrument = isInstrument(theme);
+  const useLight = isInstrumentLight(theme);
+
+  const buttonStyle = useMemo<React.CSSProperties>(() => {
     const base: React.CSSProperties = {
       display: 'inline-flex',
       alignItems: 'center',
       justifyContent: 'center',
       gap: '8px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      fontWeight: '600',
-      borderRadius: '10px',
-      border: 'none',
+      fontFamily: T.fontSans,
+      fontWeight: 500,
+      borderRadius: T.radiusButton,
+      border: '1px solid transparent',
       cursor: 'pointer',
-      transition: 'all 0.15s ease',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+      transition: 'background-color 0.15s ease, border-color 0.15s ease, transform 0.05s ease',
       ...style,
     };
 
-    // Size
     if (size === 'sm') {
-      base.padding = '8px 14px';
-      base.fontSize = '13px';
+      base.padding = '7px 12px';
+      base.fontSize = '12px';
     } else if (size === 'lg') {
-      base.padding = '14px 24px';
-      base.fontSize = '16px';
-    } else {
-      base.padding = '11px 18px';
+      base.padding = '12px 20px';
       base.fontSize = '14px';
+    } else {
+      base.padding = '9px 16px';
+      base.fontSize = '13px';
     }
 
-    // Theme
-    if (theme === 'dark') {
-      base.backgroundColor = '#0f172a';
+    if (theme === 'emerald') {
+      base.backgroundColor = '#047857';
       base.color = '#ffffff';
+      base.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
     } else if (theme === 'light') {
       base.backgroundColor = '#f8fafc';
       base.color = '#0f172a';
@@ -521,15 +1009,32 @@ export function ArcPayButton({
       base.backgroundColor = 'transparent';
       base.color = '#047857';
       base.border = '1.5px solid #047857';
-      base.boxShadow = 'none';
-    } else {
-      // Emerald brand
-      base.backgroundColor = '#047857';
+    } else if (theme === 'dark') {
+      base.backgroundColor = '#0f172a';
       base.color = '#ffffff';
+    } else if (useLight) {
+      // 'instrument-light' — light surface, dark text, hairline
+      base.backgroundColor = T.canvas;
+      base.color = T.ink;
+      base.border = `1px solid ${T.line}`;
+    } else {
+      // 'instrument' (default) — dark surface, light text, hairline
+      base.backgroundColor = T.ink;
+      base.color = T.canvas;
     }
 
     return base;
-  }, [theme, size, style]);
+  }, [theme, size, style, useLight]);
+
+  const buttonHoverStyle = useMemo<React.CSSProperties>(() => {
+    if (theme === 'emerald' || theme === 'light' || theme === 'minimal' || theme === 'dark') {
+      return {};
+    }
+    if (useLight) {
+      return { backgroundColor: T.ink, color: T.canvas };
+    }
+    return { backgroundColor: T.ink2 };
+  }, [theme, useLight]);
 
   const defaultText = label || `Pay $${formattedAmount} USDC`;
 
@@ -547,13 +1052,33 @@ export function ArcPayButton({
 
   return (
     <>
+      <style>{PULSE_KEYFRAMES}</style>
       <button
         type="button"
         className={`arcpay-btn ${className}`}
         style={buttonStyle}
         onClick={() => setIsOpen(true)}
+        onMouseEnter={(e) => {
+          if (buttonHoverStyle.backgroundColor) {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = String(buttonHoverStyle.backgroundColor);
+          }
+          if (buttonHoverStyle.color) {
+            (e.currentTarget as HTMLButtonElement).style.color = String(buttonHoverStyle.color);
+          }
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.backgroundColor = String(buttonStyle.backgroundColor);
+          (e.currentTarget as HTMLButtonElement).style.color = String(buttonStyle.color);
+        }}
       >
-        <LightningGlyph size={14} />
+        {useInstrument ? (
+          <LightningGlyph
+            size={size === 'sm' ? 12 : 14}
+            color={useLight ? T.canvas : T.canvas}
+          />
+        ) : (
+          <LightningGlyph size={size === 'sm' ? 12 : 14} />
+        )}
         <span>{defaultText}</span>
       </button>
 
@@ -564,6 +1089,7 @@ export function ArcPayButton({
           if (onCancel) onCancel();
         }}
         params={checkoutParams}
+        theme={theme}
         onSuccess={(receipt) => {
           if (onSuccess) onSuccess(receipt);
         }}
@@ -572,147 +1098,3 @@ export function ArcPayButton({
     </>
   );
 }
-
-// -----------------------------------------------------------------------------
-// Styles for Modal & Sub-elements
-// -----------------------------------------------------------------------------
-const modalBackdropStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(15, 23, 42, 0.65)',
-  backdropFilter: 'blur(4px)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 999999,
-  padding: '16px',
-};
-
-const modalCardStyle: React.CSSProperties = {
-  backgroundColor: '#ffffff',
-  borderRadius: '16px',
-  width: '100%',
-  maxWidth: '400px',
-  padding: '24px',
-  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  color: '#0f172a',
-};
-
-const modalHeaderStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: '16px',
-};
-
-const logoIconStyle: React.CSSProperties = {
-  width: '32px',
-  height: '32px',
-  borderRadius: '10px',
-  backgroundColor: '#ecfdf5',
-  color: '#047857',
-  border: '1px solid #a7f3d0',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const closeBtnStyle: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  fontSize: '16px',
-  cursor: 'pointer',
-  color: '#94a3b8',
-  padding: '4px 8px',
-  borderRadius: '6px',
-};
-
-const orderBoxStyle: React.CSSProperties = {
-  backgroundColor: '#f8fafc',
-  border: '1px solid #e2e8f0',
-  borderRadius: '12px',
-  padding: '16px',
-  marginBottom: '16px',
-};
-
-const noticeBadgeStyle: React.CSSProperties = {
-  backgroundColor: '#ecfdf5',
-  border: '1px solid #a7f3d0',
-  color: '#065f46',
-  fontSize: '11px',
-  fontWeight: '600',
-  padding: '6px 10px',
-  borderRadius: '6px',
-  marginTop: '8px',
-  display: 'flex',
-  alignItems: 'center',
-};
-
-const primaryBtnStyle: React.CSSProperties = {
-  width: '100%',
-  backgroundColor: '#047857',
-  color: '#ffffff',
-  fontWeight: '700',
-  fontSize: '15px',
-  padding: '13px 18px',
-  borderRadius: '10px',
-  border: 'none',
-  cursor: 'pointer',
-  transition: 'background-color 0.15s ease',
-};
-
-const errorBannerStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'flex-start',
-  gap: '8px',
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fecaca',
-  color: '#991b1b',
-  fontSize: '12px',
-  padding: '10px',
-  borderRadius: '8px',
-  marginBottom: '12px',
-};
-
-const qrBoxStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
-  padding: '8px',
-  backgroundColor: '#f8fafc',
-  borderRadius: '10px',
-  marginBottom: '12px',
-};
-
-const deepLinkBtnStyle: React.CSSProperties = {
-  display: 'block',
-  width: '100%',
-  textAlign: 'center',
-  backgroundColor: '#ffffff',
-  color: '#047857',
-  border: '1.5px solid #047857',
-  textDecoration: 'none',
-  fontWeight: '600',
-  fontSize: '13px',
-  padding: '10px',
-  borderRadius: '8px',
-  boxSizing: 'border-box',
-};
-
-const receiptBoxStyle: React.CSSProperties = {
-  backgroundColor: '#f8fafc',
-  border: '1px solid #e2e8f0',
-  borderRadius: '10px',
-  padding: '12px',
-  marginBottom: '16px',
-};
-
-const receiptRowStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  fontSize: '12px',
-  padding: '4px 0',
-};

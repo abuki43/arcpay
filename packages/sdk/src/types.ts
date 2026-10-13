@@ -101,8 +101,26 @@ export interface VerificationResult {
 
 /**
  * UI Theme options for ArcPayButton
+ *
+ * The current visual system is "instrument" — near-black canvas, hairline
+ * borders, Signal Amber accent — matching the redesigned ArcPay marketing
+ * site. Older theme values are kept for backwards compatibility and will
+ * continue to render the legacy emerald/light treatment, but new integrations
+ * should use the two modern values.
  */
-export type ArcPayTheme = 'emerald' | 'dark' | 'light' | 'minimal';
+export type ArcPayTheme =
+  /** Dark instrument: ink-on-canvas with amber accent. Default. */
+  | 'instrument'
+  /** Light instrument: canvas-on-ink with amber accent, for light host pages. */
+  | 'instrument-light'
+  /** @deprecated Use 'instrument'. The emerald brand color is no longer used. */
+  | 'emerald'
+  /** @deprecated Use 'instrument' (already dark) or 'instrument-light'. */
+  | 'dark'
+  /** @deprecated Use 'instrument-light' for light backgrounds. */
+  | 'light'
+  /** @deprecated Use 'instrument-light' for borderless buttons. */
+  | 'minimal';
 
 /**
  * ArcPayButton Component Props
