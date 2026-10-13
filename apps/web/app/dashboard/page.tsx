@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount, useChainId, useConnect } from 'wagmi';
+import { toast } from 'sonner';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { WalletGuard } from '@/components/dashboard/wallet-guard';
 import { OverviewTab } from '@/components/dashboard/overview-tab';
@@ -107,7 +108,7 @@ export default function MerchantDashboardPage() {
       const data = await res.json();
       if (res.ok) {
         setWebhookSecret(data.webhookSecret);
-        alert(regenerateSecret ? 'New secret generated.' : 'Webhook URL saved.');
+        toast.success(regenerateSecret ? 'New secret generated.' : 'Webhook URL saved');
         loadWebhooks();
       }
     } catch (err) { console.error(err); } finally { setIsSavingWebhook(false); }

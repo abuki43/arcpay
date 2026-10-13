@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
+import { toast } from 'sonner';
 import { Eyebrow } from '@/components/eyebrow';
 import { Button } from '@/components/ui/button';
 import { ModeSelector } from '@/components/studio/mode-selector';
@@ -61,10 +62,10 @@ export default function PayLinkStudioPage() {
         setSavedSlug(data.payLink.slug);
         setShowSuccessModal(true);
       } else {
-        alert(data.error || 'Failed to create PayLink');
+        toast.error(data.error || 'Failed to create PayLink');
       }
     } catch (err: unknown) {
-      alert((err as Error).message);
+      toast.error((err as Error).message);
     } finally {
       setIsSaving(false);
     }

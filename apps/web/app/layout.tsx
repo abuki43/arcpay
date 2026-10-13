@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from './providers';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { ToastProvider } from '@/components/toast';
 
 const sans = Instrument_Sans({
   subsets: ['latin'],
@@ -50,6 +51,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
+          <ToastProvider />
         </Providers>
       </body>
     </html>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { useAccount, useChainId } from 'wagmi';
+import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { useCheckout } from '@arcpay/sdk/react';
 import {
@@ -133,7 +134,7 @@ export default function HostedSlugPayPage({
   const handlePay = async () => {
     if (!payLink) return;
     if (payLink.collectEmail && !buyerEmail) {
-      alert('Please provide your email address for order fulfillment.');
+      toast.error('Please provide your email address for order fulfillment');
       return;
     }
     try {
