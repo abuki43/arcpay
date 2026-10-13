@@ -11,10 +11,10 @@ import {
 } from '@arcpay/sdk';
 import { Badge } from '@/components/ui/badge';
 import { KpiCard } from '@/components/kpi-card';
-import { useSettlementFeed } from '@/lib/use-settlement-feed';
 import { Eyebrow } from '@/components/eyebrow';
 import { Reveal } from '@/components/motion';
 import { Input } from '@/components/ui/input';
+import { useNetworkSettlements } from '@/lib/use-network-settlements';
 import {
   Activity,
   Copy,
@@ -23,6 +23,7 @@ import {
   ExternalLink,
   Percent,
   PieChart,
+  RefreshCcw,
   Search,
   ShieldCheck,
 } from 'lucide-react';
@@ -32,6 +33,9 @@ export default function NetworkStatsPage() {
   const gatewayAddress =
     DEFAULT_GATEWAY_ADDRESSES[chainId] ?? DEFAULT_GATEWAY_ADDRESSES[5042002];
 
+  // Protocol-wide totals still come from the contract — single-value reads are cheap
+  // and represent the on-chain source of truth. The settlement feed table switches
+  // to the indexer-backed API for fast, paginated, searchable history.
   const { data: totalVolume } = useReadContract({
     address: gatewayAddress,
     abi: ARC_PAYMENT_GATEWAY_ABI,
@@ -54,7 +58,14 @@ export default function NetworkStatsPage() {
     query: { refetchInterval: 15_000 },
   });
 
-  const { items: feed, isLoading, error } = useSettlementFeed({ limit: 30 });
+  const {
+    settlements: feed,
+    total: indexedTotal,
+    isLoading,
+    error,
+    lastUpdated,
+    refresh,
+  } = useNetworkSettlements({ limit: 30, refreshIntervalMs: 10_000 });
 
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -71,7 +82,7 @@ export default function NetworkStatsPage() {
     return feed.filter(
       (item) =>
         item.orderId.toLowerCase().includes(term) ||
-        item.merchant.toLowerCase().includes(term)
+        item.merchant.toLowerCase().includes(term),
     );
   }, [feed, searchTerm]);
 
@@ -81,6 +92,10 @@ export default function NetworkStatsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const updatedAgo = lastUpdated
+    ? `${Math.max(1, Math.round((Date.now() - lastUpdated) / 1000))}s ago`
+    : null;
+
   return (
     <div className="pt-28 pb-20 min-h-[85vh] relative">
       <div className="max-w-[1280px] mx-auto px-6 lg:px-10">
@@ -89,7 +104,7 @@ export default function NetworkStatsPage() {
             <Badge variant="secondary">ArcPay · aggregate</Badge>
             <span className="inline-flex items-center gap-1.5 text-tiny text-accent font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-accent arc-pulse" />
-              Live on-chain
+              Indexed from Arc
             </span>
           </div>
           <Eyebrow className="mb-4">Network analytics</Eyebrow>
@@ -145,27 +160,41 @@ export default function NetworkStatsPage() {
                 <h2 className="text-h6 font-medium text-ink">Recent settlements</h2>
                 <p className="text-tiny text-ink-3">
                   {isLoading
-                    ? 'Reading recent activity from Arc Layer-1…'
-                    : `${feed.length} recent settlement${feed.length === 1 ? '' : 's'} · amounts only`}
+                    ? 'Loading indexed activity…'
+                    : `${indexedTotal.toLocaleString()} indexed · showing ${feed.length} · amounts only`}
                 </p>
               </div>
 
-              <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2" />
-                <Input
-                  type="text"
-                  placeholder="Search merchant or order…"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {updatedAgo && (
+                  <span className="text-nano font-mono text-ink-3 hidden sm:inline">
+                    updated {updatedAgo}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={refresh}
+                  className="p-1.5 rounded-ctl border border-line bg-canvas text-ink-2 hover:text-ink hover:border-line-strong transition-colors"
+                  title="Refresh"
+                >
+                  <RefreshCcw className="w-3.5 h-3.5" />
+                </button>
+                <div className="relative flex-1 sm:w-64 sm:flex-initial">
+                  <Search className="w-3.5 h-3.5 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Input
+                    type="text"
+                    placeholder="Search merchant or order…"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
               </div>
             </div>
 
             {error && (
               <div className="px-5 py-3 text-tiny text-danger bg-danger/10 border-b border-danger/20">
-                Could not backfill history ({error.message}). Live updates
-                continue while this page is open.
+                Could not load indexed history ({error.message}). Retrying every 10s.
               </div>
             )}
 
@@ -182,24 +211,32 @@ export default function NetworkStatsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line text-tiny text-ink-2 font-mono">
-                  {filteredFeed.length === 0 ? (
+                  {isLoading && feed.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-ink-3">
-                        No matching settlements found.
+                        Loading…
+                      </td>
+                    </tr>
+                  ) : filteredFeed.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-ink-3">
+                        {indexedTotal === 0
+                          ? 'No settlements indexed yet. The indexer writes to this table in real time.'
+                          : 'No matching settlements found.'}
                       </td>
                     </tr>
                   ) : (
                     filteredFeed.map((item) => (
                       <tr key={item.orderId} className="hover:bg-raised/50 transition-colors">
                         <td className="py-3.5 px-5 font-medium text-ink tabular-nums">
-                          ${formatUsdc(item.gross)}{' '}
+                          ${formatUsdc(BigInt(item.gross))}{' '}
                           <span className="text-ink-3">USDC</span>
                         </td>
                         <td className="py-3.5 px-5 text-accent tabular-nums">
-                          ${formatUsdc(item.protocolFee)}
+                          ${formatUsdc(BigInt(item.protocolFee))}
                         </td>
                         <td className="py-3.5 px-5 text-ink">
-                          {shortenAddress(item.merchant)}
+                          {shortenAddress(item.merchant as `0x${string}`)}
                         </td>
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-1.5">
@@ -226,7 +263,7 @@ export default function NetworkStatsPage() {
                         </td>
                         <td className="py-3.5 px-5 text-right">
                           <a
-                            href={getExplorerTxUrl(chainId || 5042002, item.txHash)}
+                            href={getExplorerTxUrl(chainId || 5042002, item.txHash as `0x${string}`)}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 text-accent hover:text-accent-2"
