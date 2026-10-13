@@ -107,3 +107,14 @@ model WebhookDelivery {
   @@index([merchantAddress, createdAt(sort: Desc)])
   @@map("webhook_deliveries")
 }
+
+model IndexerCursor {
+  id             String   @id // singleton, always "main"
+  lastBlock      BigInt
+  lastRunAt      DateTime @default(now())
+  lastEventCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("indexer_cursor")
+}
