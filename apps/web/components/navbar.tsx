@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAccount, useConnect, useDisconnect, useBalance } from 'wagmi';
+import { useAccount, useChainId, useConnect, useDisconnect, useBalance } from 'wagmi';
 import { shortenAddress } from '@arcpay/sdk/utils';
+import { arcMainnet } from '@arcpay/sdk';
 import { Button } from '@/components/ui/button';
 import {
   Zap,
@@ -16,6 +17,7 @@ import {
 
 export function Navbar() {
   const pathname = usePathname();
+  const chainId = useChainId();
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
@@ -23,8 +25,11 @@ export function Navbar() {
 
   const { data: balanceData } = useBalance({ address });
 
-  const handleConnect = () => {
-    if (connectors.length > 0) connect({ connector: connectors[0] });
+  const handleConnect = (connectorId?: string) => {
+    const connector =
+      connectors.find((c) => c.id === connectorId) ?? connectors[0];
+    if (connector) connect({ connector });
+    setDropdownOpen(false);
   };
 
   const navLinks = [
@@ -71,7 +76,7 @@ export function Navbar() {
         <div className="flex items-center gap-2.5">
           <div className="hidden sm:flex items-center gap-2 px-3 h-7 rounded-pill border border-line bg-raised text-tiny font-medium text-ink-2">
             <span className="w-1.5 h-1.5 rounded-full bg-accent arc-pulse" />
-            <span>Arc Testnet</span>
+            <span>{chainId === arcMainnet.id ? 'Arc Mainnet' : 'Arc Testnet'}</span>
           </div>
 
           {isConnected && address ? (
@@ -102,7 +107,7 @@ export function Navbar() {
                     </p>
                   </div>
                   <a
-                    href={`https://explorer.testnet.arc.io/address/${address}`}
+                    href={`${chainId === arcMainnet.id ? 'https://explorer.arc.io' : 'https://explorer.testnet.arc.io'}/address/${address}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 px-3 py-2 text-ink-2 hover:text-ink hover:bg-inset rounded-chip transition-colors"
@@ -124,15 +129,48 @@ export function Navbar() {
                 </div>
               )}
             </div>
-          ) : (
+          ) : connectors.length === 1 ? (
             <Button
-              onClick={handleConnect}
+              onClick={() => handleConnect()}
               size="sm"
               className="gap-2"
             >
               <Wallet className="w-3.5 h-3.5" />
               Connect
             </Button>
+          ) : (
+            <div className="relative">
+              <Button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                size="sm"
+                className="gap-2"
+              >
+                <Wallet className="w-3.5 h-3.5" />
+                Connect
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-64 rounded-ctl border border-line bg-raised p-1.5 z-50 text-body">
+                  <div className="px-3 py-2 border-b border-line mb-1">
+                    <p className="text-nano uppercase tracking-mono-cap text-ink-3">
+                      Connect a wallet
+                    </p>
+                  </div>
+                  {connectors.map((connector) => (
+                    <button
+                      key={connector.uid}
+                      type="button"
+                      onClick={() => handleConnect(connector.id)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-ink-2 hover:text-ink hover:bg-inset rounded-chip transition-colors text-left"
+                    >
+                      <Wallet className="w-3.5 h-3.5 shrink-0 text-ink-3" />
+                      <span className="truncate">{connector.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </header>

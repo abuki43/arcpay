@@ -1,6 +1,6 @@
 import { http, fallback } from 'viem';
 import { createConfig } from 'wagmi';
-import { injected } from 'wagmi/connectors';
+import { injected, coinbaseWallet, walletConnect } from 'wagmi/connectors';
 import { arcTestnet, arcMainnet } from '@arcpay/sdk';
 
 const testnetSources = [
@@ -13,12 +13,21 @@ const mainnetSources = [
   process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL,
 ].filter((url): url is string => Boolean(url));
 
+// WalletConnect needs a Reown Cloud projectId. It is opt-in so the app still
+// works without a Reown account — browser wallets and Coinbase are enough
+// for checkout, WalletConnect only adds mobile QR.
+const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+
 export const wagmiConfig = createConfig({
-  chains: [arcTestnet, arcMainnet],
+  chains: [arcMainnet, arcTestnet],
   connectors: [
-    injected({
-      target: 'metaMask',
-    }),
+    // `injected()` with no `target` picks up any EIP-1193 / EIP-6963 wallet
+    // (Rabby, Brave, Frame, Coinbase extension, ...), not just MetaMask.
+    injected(),
+    coinbaseWallet({ appName: 'ArcPay' }),
+    ...(walletConnectProjectId
+      ? [walletConnect({ projectId: walletConnectProjectId, showQrModal: true })]
+      : []),
   ],
   transports: {
     // Public Arc endpoint is primary (Alchemy's Free tier caps eth_getLogs at a

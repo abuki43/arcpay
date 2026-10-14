@@ -18,28 +18,26 @@ export async function discoverWallet(): Promise<Eip6963Provider | null> {
   if (typeof window === 'undefined') return null;
 
   return new Promise((resolve) => {
-    let resolved = false;
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        resolve((window as any).ethereum ?? null);
-      }
-    }, 500);
+    const finish = (provider: Eip6963Provider | null) => {
+      window.removeEventListener('eip6963:announceProvider', onAnnounce);
+      resolve(provider);
+    };
 
-    const handler = (event: any) => {
-      if (resolved) return;
-      resolved = true;
-      clearTimeout(timeout);
+    const onAnnounce = (event: any) => {
       const provider = event.detail?.provider ?? event.detail ?? null;
       if (provider && typeof provider.request === 'function') {
-        resolve(provider);
+        finish(provider);
       } else {
-        resolve((window as any).ethereum ?? null);
+        finish((window as any).ethereum ?? null);
       }
     };
 
-    window.addEventListener('eip6963:announceProvider', handler);
+    window.addEventListener('eip6963:announceProvider', onAnnounce);
     window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+    // Wallets that predate EIP-6963 never announce; fall back to the legacy
+    // injection slot rather than hanging on the listener forever.
+    setTimeout(() => finish((window as any).ethereum ?? null), 500);
   });
 }
 
