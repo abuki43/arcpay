@@ -60,6 +60,17 @@ function extractCode(err: unknown, depth = 0): number | undefined {
 }
 
 /**
+ * The receipt guard tags its own error rather than relying on the message
+ * alone, since the message is short copy the matcher cannot key off of.
+ */
+function isPendingConfirmation(err: unknown, depth = 0): boolean {
+  if (!err || depth > 6 || typeof err !== 'object') return false;
+  const e = err as { isPendingConfirmation?: unknown; cause?: unknown };
+  if (e.isPendingConfirmation === true) return true;
+  return isPendingConfirmation(e.cause, depth + 1);
+}
+
+/**
  * Turns any checkout failure into a short, human-readable Error.
  *
  * The original error is preserved on `cause`, so callers can still inspect it.
@@ -81,6 +92,18 @@ export function humanizeCheckoutError(err: unknown): Error {
     return next;
   };
 
+  // Must precede NETWORK: viem's receipt timeout says "Timed out while waiting
+  // for transaction", which NETWORK matches. A payment whose receipt merely has
+  // not been indexed yet must never read as failed, or the user may pay twice.
+  const PENDING_CONFIRMATION =
+    /TransactionReceiptNotFoundError|WaitForTransactionReceiptTimeoutError|still confirming on arc/i;
+
+  if (PENDING_CONFIRMATION.test(combined) || isPendingConfirmation(err)) {
+    return short(
+      'Still confirming on Arc. Your payment was submitted — check the explorer before paying again.',
+    );
+  }
+
   if (USER_REJECTED.test(combined)) {
     return short('You cancelled the payment.');
   }
@@ -101,5 +124,7 @@ export function humanizeCheckoutError(err: unknown): Error {
     return short('The transaction reverted on Arc.');
   }
 
+  // viem's receipt timeout shares the word "transaction" with real reverts,
+  // so it must be matched before them or a pending payment reads as failed.
   return short('Payment failed. Please try again.');
 }

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Check, Zap, ExternalLink, ArrowUpRight } from 'lucide-react';
 
 const DEMO_MERCHANT = '0xf46b169915c5820E9FcdcD79F5AA5B246E32220D';
+const DEMO_RPC_URL = process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL || undefined;
 const CONFETTI_COLORS = ['#F5A524', '#E89216', '#FFCB6B', '#FFFFFF'];
 
 const PLANS = [
@@ -131,6 +132,7 @@ export function StorefrontDemo() {
                     theme={plan.featured ? 'instrument' : 'instrument-light'}
                     size={plan.featured ? 'lg' : 'md'}
                     className="w-full"
+                    rpcUrl={DEMO_RPC_URL}
                     onSuccess={handlePaymentSuccess}
                   />
                   <div className="mt-2 text-center text-nano uppercase tracking-mono-cap text-ink-3 font-mono">

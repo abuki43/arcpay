@@ -9,6 +9,12 @@ import { humanizeCheckoutError } from './errors';
 /** Generous per-request timeout; public Arc endpoints can stall under load. */
 const RPC_TIMEOUT_MS = 20_000;
 
+/**
+ * Total budget for confirming a receipt. Arc produces a block every ~600ms,
+ * so the window only needs to outlive a lagging RPC node's indexing delay.
+ */
+const RECEIPT_CONFIRM_TIMEOUT_MS = 60_000;
+
 // SSR-safe base class
 const CustomElementBase: { new (): HTMLElement } =
   typeof HTMLElement !== 'undefined'
@@ -494,10 +500,41 @@ export class ArcPayButtonElement extends CustomElementBase {
         }],
       });
 
-      const receipt = await publicClient.waitForTransactionReceipt({
-        hash: txHash,
-        timeout: 30_000,
-      });
+      // An unseen receipt means unknown, not failed: the tx may already be
+      // mined while the node lags. Never report that as a revert, or the user
+      // may retry and pay twice.
+      let receipt;
+      try {
+        receipt = await publicClient.waitForTransactionReceipt({
+          hash: txHash,
+          timeout: RECEIPT_CONFIRM_TIMEOUT_MS,
+        });
+      } catch (receiptErr: any) {
+        const name = receiptErr?.name || '';
+        if (
+          name === 'TransactionReceiptNotFoundError' ||
+          name === 'WaitForTransactionReceiptTimeoutError'
+        ) {
+          const probed = await publicClient
+            .getTransactionReceipt({ hash: txHash })
+            .catch(() => null);
+
+          if (!probed) {
+            const pending = new Error(
+              `Still confirming on Arc. Your payment was submitted (tx ${txHash}) — check the explorer before paying again.`,
+            );
+            (pending as any).isPendingConfirmation = true;
+            if (btn) btn.querySelector('span')!.textContent = 'Confirming…';
+            this.dispatchEvent(new CustomEvent('arcpay:pending', {
+              detail: { txHash },
+            }));
+            throw pending;
+          }
+          receipt = probed;
+        } else {
+          throw receiptErr;
+        }
+      }
 
       if (receipt.status !== 'success') {
         throw new Error('Transaction reverted on Arc.');

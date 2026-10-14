@@ -80,6 +80,12 @@ const isInstrumentLight = (theme: ArcPayTheme) => theme === 'instrument-light';
 /** Generous per-request timeout; public Arc endpoints can stall under load. */
 const RPC_TIMEOUT_MS = 20_000;
 
+/**
+ * Total budget for confirming a receipt. Arc produces a block every ~600ms,
+ * so the window only needs to outlive a lagging RPC node's indexing delay.
+ */
+const RECEIPT_CONFIRM_TIMEOUT_MS = 60_000;
+
 // -----------------------------------------------------------------------------
 // Helper: Arc Chain Hex & Parameters for Injected Wallets
 // -----------------------------------------------------------------------------
@@ -296,10 +302,43 @@ export function useCheckout(): UseCheckoutReturn {
           ],
         });
 
-        const txReceipt = await publicClient.waitForTransactionReceipt({
-          hash: txHash,
-          timeout: 30_000,
-        });
+        // A receipt that has not appeared yet means the outcome is unknown, not
+        // that the payment failed: the transaction may already be mined and
+        // the node simply lagging. Reporting that as a failure risks a user
+        // retrying and paying twice.
+        let txReceipt;
+        try {
+          txReceipt = await publicClient.waitForTransactionReceipt({
+            hash: txHash,
+            timeout: RECEIPT_CONFIRM_TIMEOUT_MS,
+          });
+        } catch (receiptErr: any) {
+          const name = receiptErr?.name || '';
+          if (
+            name === 'TransactionReceiptNotFoundError' ||
+            name === 'WaitForTransactionReceiptTimeoutError'
+          ) {
+            // Probe once directly. A late-indexing node often answers the
+            // single-shot read even when polling gave up.
+            const probed = await publicClient
+              .getTransactionReceipt({ hash: txHash })
+              .catch(() => null);
+
+            if (!probed) {
+              const pending = new Error(
+                `Still confirming on Arc. Your payment was submitted (tx ${txHash}) — check the explorer before paying again.`,
+              );
+              (pending as any).isPendingConfirmation = true;
+              setIsPaying(false);
+              setIsConnecting(false);
+              setError(pending);
+              throw pending;
+            }
+            txReceipt = probed;
+          } else {
+            throw receiptErr;
+          }
+        }
 
         if (txReceipt.status !== 'success') {
           throw new Error('Transaction was reverted on Arc Network.');

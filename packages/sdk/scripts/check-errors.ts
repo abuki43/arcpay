@@ -42,6 +42,28 @@ const cases: Array<[string, unknown, string]> = [
     new Error('HTTP request failed. Details: request timed out after 10000ms'),
     "Couldn't reach Arc. Check your connection and try again.",
   ],
+  [
+    'real receipt timeout from /demo (must NOT read as failure)',
+    new Error(
+      'WaitForTransactionReceiptTimeoutError: Timed out while waiting for transaction with hash "0x386de707ae3099e0502dd923f0c705d51913a221377853eb0211cced7e5b8a02" to be confirmed.\n\nVersion: viem@2.56.8',
+    ),
+    'Still confirming on Arc. Your payment was submitted — check the explorer before paying again.',
+  ],
+  [
+    'TransactionReceiptNotFoundError',
+    Object.assign(new Error('TransactionReceiptNotFoundError: An unknown error occurred.'), {
+      cause: new Error('TransactionReceiptNotFoundError'),
+    }),
+    'Still confirming on Arc. Your payment was submitted — check the explorer before paying again.',
+  ],
+  [
+    'pending marker set by the receipt guard',
+    Object.assign(
+      new Error('Still confirming on Arc. Your payment was submitted (tx 0xabc) — check the explorer before paying again.'),
+      { isPendingConfirmation: true },
+    ),
+    'Still confirming on Arc. Your payment was submitted — check the explorer before paying again.',
+  ],
 ];
 
 let failures = 0;
