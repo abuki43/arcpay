@@ -21,10 +21,13 @@ export * from './client';
 // Server-side Verification Engine
 export * from './server';
 
-// Universal Web Component
-export * from './element';
+// NOTE: the universal web component is deliberately NOT re-exported here.
+// `@arcpay/sdk/element` registers <arc-pay-button> as a side effect and pulls
+// the qrcode dependency in with it. Exporting it from the barrel meant anyone
+// importing a string helper also dragged the DOM component into their bundle.
+// Import it explicitly from '@arcpay/sdk/element' instead.
 
 // Wallet Discovery & Chain Switching
 export * from './wallet';
 
-export const SDK_VERSION = '0.2.0';
+export const SDK_VERSION = '0.3.0';

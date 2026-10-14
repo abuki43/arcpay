@@ -1,6 +1,6 @@
 {
   "name": "@arcpay/sdk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Developer-first payment SDK for Arc Network with native USDC gas, 0.4% protocol fee model, and sub-second settlement.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
