@@ -4,6 +4,8 @@
 
 ArcPay lets any website, app, or creator accept native USDC payments on the Arc L1 blockchain in a single click. No redirects, no forms, no custody. Settlements are sub-second, non-custodial, and cost a flat 0.40% protocol fee.
 
+**Live on Arc mainnet → [arcpay.up.railway.app](https://arcpay.up.railway.app)**
+
 Built for the [Arc Microgrants](https://dorahacks.io/hackathon/arc-microgrants) hackathon.
 
 ---
@@ -15,6 +17,38 @@ Built for the [Arc Microgrants](https://dorahacks.io/hackathon/arc-microgrants) 
 - **Merchant Dashboard** — real-time settlement feed, PayLink management, per-link analytics, and HMAC-signed webhooks
 - **Network Analytics** — protocol-wide volume, fees, and settlement activity indexed from Arc L1
 - **Settlement Indexer** — background worker that listens to `PaymentSettled` and `PaymentSplitSettled` events and writes them to PostgreSQL
+
+## Product Tour
+
+### Merchant dashboard
+
+Real-time revenue, order counts, and protocol fees, backed by the settlement indexer rather than an RPC scan. Every row links to its ArcScan transaction.
+
+![ArcPay merchant dashboard](assets/dashboard.jpg)
+
+### PayLink Studio
+
+Generate a shareable payment link in one step: recipient, price, optional tiers, and buyer-email collection. The live preview renders the invoice and QR the buyer will actually see.
+
+![ArcPay PayLink Studio](assets/create.jpg)
+
+### One-click checkout
+
+The checkout modal opens in-page, settles natively in ~600ms, and returns the order ID and transaction hash. No redirect, no approval popup beyond the wallet signature.
+
+![ArcPay checkout confirmation](assets/success.jpg)
+
+### Demo storefront
+
+Click any tier to trigger the real `@arcpay/sdk` modal against the deployed gateway.
+
+![ArcPay demo storefront](assets/demo.jpg)
+
+### Network analytics
+
+Protocol-wide volume, fees, and settlement activity indexed from Arc L1.
+
+![ArcPay network analytics](assets/network.jpg)
 
 ## How It Uses Arc
 
@@ -71,7 +105,7 @@ ArcPay is built natively on Arc (chain ID 5042 mainnet / 5042002 testnet):
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22.9+
 - pnpm 9+
 - PostgreSQL 14+
 - A wallet with USDC on Arc (testnet or mainnet)
@@ -95,6 +129,10 @@ DATABASE_URL="postgresql://user:password@localhost:5432/arcpay"
 
 NEXT_PUBLIC_ARC_TESTNET_RPC_URL="https://rpc.testnet.arc.io"
 NEXT_PUBLIC_ARC_MAINNET_RPC_URL="https://rpc.mainnet.arc.io"
+
+# Which network the app targets. 5042 = Mainnet, 5042002 = Testnet.
+# See "Switching networks" below.
+NEXT_PUBLIC_DEFAULT_CHAIN_ID=5042
 ```
 
 ### 3. Run database migrations
@@ -264,8 +302,28 @@ The SDK supports two modern themes and four legacy themes:
 
 | Network | Chain ID | Gateway Address |
 |---|---|---|
+| Arc Mainnet | 5042 | [`0x6A1aAc76FF4A9F1F2370E6578aC53DBdF5143815`](https://explorer.arc.io/address/0x6A1aAc76FF4A9F1F2370E6578aC53DBdF5143815) — [verified source](https://explorer.arc.io/address/0x6A1aAc76FF4A9F1F2370E6578aC53DBdF5143815?tab=contract) |
 | Arc Testnet | 5042002 | `0xd35be28A0b54Dd4559494b2328E1Cb7C3f0318B7` |
-| Arc Mainnet | 5042 | *Pending deployment* |
+
+Mainnet deployment details:
+
+- **Deploy tx**: [`0xc824ec57…161f`](https://explorer.arc.io/tx/0xc824ec570952de764db70e04e5e9368933eb6d2e123d1ced9bfb86c8a79f161f) at block `25917804`
+- **Compiler**: solc `0.8.20`, optimizer on (200 runs), EVM version `paris`
+- **License**: MIT (matches the `SPDX-License-Identifier` in the verified source)
+- **Protocol fee**: 0.40% (40 bps) routed to the treasury
+
+### Switching networks
+
+The web app targets a single network per deployment, chosen by one environment variable:
+
+```env
+# 5042 = Arc Mainnet (production)  |  5042002 = Arc Testnet (local dev)
+NEXT_PUBLIC_DEFAULT_CHAIN_ID=5042
+```
+
+Set it to `5042002` in `apps/web/.env.local` to develop against testnet. An unset or unrecognised value fails fast rather than silently settling on the wrong network. Point the indexer at the same network with `CHAIN_ID`.
+
+The SDK follows whatever chain you pass it. When no `chainId` is supplied it defaults to **Arc Mainnet (5042)** — never testnet — so an omitted prop cannot route a live payment to the sandbox gateway.
 
 ## License
 

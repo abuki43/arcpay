@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
-import { useAccount, useChainId } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { useCheckout } from '@arcpay/sdk/react';
@@ -12,6 +12,7 @@ import {
 } from '@arcpay/sdk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DEFAULT_APP_CHAIN_ID } from '@/lib/chain-config';
 import {
   Zap,
   ShieldCheck,
@@ -60,7 +61,10 @@ export default function HostedSlugPayPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const chainId = useChainId();
+  // Deployment config decides the target network, not the wallet's current
+  // chain. Reading useChainId() here let a wallet left on Arc Testnet settle
+  // this PayLink against the testnet gateway and still show success.
+  const chainId = DEFAULT_APP_CHAIN_ID;
   const { checkout, isConnecting, isPaying, isSuccess, error, receipt } = useCheckout();
 
   const [loading, setLoading] = useState(true);
@@ -137,8 +141,7 @@ export default function HostedSlugPayPage({
       return;
     }
     try {
-      const activeChainId = chainId;
-      const targetRpc = activeChainId === 5042
+      const targetRpc = chainId === 5042
         ? process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL
         : process.env.NEXT_PUBLIC_ARC_TESTNET_RPC_URL;
       await checkout({
@@ -153,7 +156,7 @@ export default function HostedSlugPayPage({
           buyerEmail: buyerEmail || null,
           buyerHandle: buyerHandle || null,
         }),
-        chainId: activeChainId,
+        chainId: chainId,
         rpcUrl: targetRpc || undefined,
       });
     } catch (err) {
