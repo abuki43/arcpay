@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate --schema=apps/web/prisma/schema.prisma",
     "build": "pnpm --filter @arcpay/sdk build && pnpm --filter arcpay-web build",
     "dev": "pnpm --filter arcpay-web dev",
     "test:contracts": "cd contracts && forge test -vvv"
