@@ -35,7 +35,8 @@
   "scripts": {
     "build": "tsup src/index.ts src/react.tsx src/server.ts src/element.ts src/utils.ts --platform browser --format cjs,esm --dts --clean && pnpm check:bundle",
     "dev": "tsup src/index.ts src/react.tsx src/server.ts src/element.ts src/utils.ts --platform browser --format cjs,esm --dts --watch",
-    "check:bundle": "node scripts/check-browser-bundle.mjs"
+    "check:bundle": "node scripts/check-browser-bundle.mjs",
+    "check:errors": "tsx scripts/check-errors.ts"
   },
   "dependencies": {
     "viem": "^2.23.0"
@@ -60,6 +61,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tsup": "^8.3.6",
+    "tsx": "^4.19.0",
     "typescript": "^5.7.3"
   }
 }

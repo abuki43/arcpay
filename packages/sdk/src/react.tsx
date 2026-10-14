@@ -4,6 +4,7 @@ import {
   type Hash,
   createPublicClient,
   encodeFunctionData,
+  fallback,
   getAddress,
   http,
 } from 'viem';
@@ -32,6 +33,7 @@ import {
   shortenAddress,
 } from './utils';
 import { discoverWallet, switchToChain } from './wallet';
+import { humanizeCheckoutError } from './errors';
 
 // -----------------------------------------------------------------------------
 // Design tokens — ArcPay "Instrument" theme
@@ -74,6 +76,9 @@ const T = {
 const isInstrument = (theme: ArcPayTheme) =>
   theme === 'instrument' || theme === 'instrument-light';
 const isInstrumentLight = (theme: ArcPayTheme) => theme === 'instrument-light';
+
+/** Generous per-request timeout; public Arc endpoints can stall under load. */
+const RPC_TIMEOUT_MS = 20_000;
 
 // -----------------------------------------------------------------------------
 // Helper: Arc Chain Hex & Parameters for Injected Wallets
@@ -235,19 +240,49 @@ export function useCheckout(): UseCheckoutReturn {
           args,
         });
 
+        // Try the caller-supplied RPC first, then the chain's public endpoint. A
+        // single flaky node must not be able to block a payment.
         const publicClient = createPublicClient({
           chain: targetChain,
-          transport: rpcUrl ? http(rpcUrl) : http(),
+          transport: fallback(
+            [
+              ...(rpcUrl ? [http(rpcUrl, { timeout: RPC_TIMEOUT_MS, retryCount: 1 })] : []),
+              http(targetChain.rpcUrls.default.http[0], { timeout: RPC_TIMEOUT_MS, retryCount: 1 }),
+            ],
+            { retryCount: 2 },
+          ),
         });
 
-        await publicClient.simulateContract({
-          address: gatewayAddress,
-          abi: ARC_PAYMENT_GATEWAY_ABI,
-          functionName,
-          args,
-          value: grossAmount,
-          account: payer,
-        });
+        // Simulation catches reverts before the wallet prompts. Network blips
+        // are tolerated so a slow node cannot fail an otherwise valid payment.
+        try {
+          await publicClient.simulateContract({
+            address: gatewayAddress,
+            abi: ARC_PAYMENT_GATEWAY_ABI,
+            functionName,
+            args,
+            value: grossAmount,
+            account: payer,
+          });
+        } catch (simErr) {
+          const message = simErr instanceof Error ? simErr.message : String(simErr);
+          const isRevert =
+            /revert|execution failed|PaymentAlreadySettled|InvalidAmount|InvalidMerchant|InvalidAffiliate|InvalidSplitAmounts|TransferFailed/i.test(
+              message,
+            );
+          const isNetwork =
+            /Failed to fetch|fetch failed|HTTP request failed|timeout|ECONN|aborted|socket hang up/i.test(
+              message,
+            );
+
+          if (isRevert) throw simErr;
+          if (!isNetwork) throw simErr;
+
+          console.warn(
+            '[arcpay] simulation skipped after a transport error; continuing:',
+            message,
+          );
+        }
 
         const txHash: Hash = await ethereum.request({
           method: 'eth_sendTransaction',
@@ -293,7 +328,9 @@ export function useCheckout(): UseCheckoutReturn {
       } catch (err: any) {
         setIsConnecting(false);
         setIsPaying(false);
-        const customError = new Error(err?.message || 'Payment failed or was rejected by user.');
+        // Keep the full provider/viem detail for debugging; surface short copy.
+        console.error('[arcpay] checkout failed:', err);
+        const customError = humanizeCheckoutError(err);
         setError(customError);
         throw customError;
       }

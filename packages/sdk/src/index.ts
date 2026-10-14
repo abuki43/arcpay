@@ -30,4 +30,7 @@ export * from './server';
 // Wallet Discovery & Chain Switching
 export * from './wallet';
 
+// Human-readable checkout errors
+export * from './errors';
+
 export const SDK_VERSION = '0.3.0';

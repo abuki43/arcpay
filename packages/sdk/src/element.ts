@@ -1,9 +1,13 @@
-import { getAddress, encodeFunctionData, createPublicClient, http } from 'viem';
+import { getAddress, encodeFunctionData, createPublicClient, fallback, http } from 'viem';
 import QRCode from 'qrcode';
 import { ARC_PAYMENT_GATEWAY_ABI } from './abi';
 import { DEFAULT_CHAIN_ID, DEFAULT_GATEWAY_ADDRESSES, SUPPORTED_CHAINS, arcTestnet, PROTOCOL_FEE_BPS, BPS_DIVISOR } from './constants';
 import { generateOrderId, parseUsdc, formatUsdc } from './utils';
 import { discoverWallet, switchToChain } from './wallet';
+import { humanizeCheckoutError } from './errors';
+
+/** Generous per-request timeout; public Arc endpoints can stall under load. */
+const RPC_TIMEOUT_MS = 20_000;
 
 // SSR-safe base class
 const CustomElementBase: { new (): HTMLElement } =
@@ -432,19 +436,49 @@ export class ArcPayButtonElement extends CustomElementBase {
         args,
       });
 
+      // Try the caller-supplied RPC first, then the chain's public endpoint. A
+      // single flaky node must not be able to block a payment.
       const publicClient = createPublicClient({
         chain: targetChain,
-        transport: rpcUrl ? http(rpcUrl) : http(),
+        transport: fallback(
+          [
+            ...(rpcUrl ? [http(rpcUrl, { timeout: RPC_TIMEOUT_MS, retryCount: 1 })] : []),
+            http(targetChain.rpcUrls.default.http[0], { timeout: RPC_TIMEOUT_MS, retryCount: 1 }),
+          ],
+          { retryCount: 2 },
+        ),
       });
 
-      await publicClient.simulateContract({
-        address: gatewayAddress,
-        abi: ARC_PAYMENT_GATEWAY_ABI,
-        functionName,
-        args,
-        value: grossAmount,
-        account: payer,
-      });
+      // Simulation catches reverts before the wallet prompts. Network blips
+      // are tolerated so a slow node cannot fail an otherwise valid payment.
+      try {
+        await publicClient.simulateContract({
+          address: gatewayAddress,
+          abi: ARC_PAYMENT_GATEWAY_ABI,
+          functionName,
+          args,
+          value: grossAmount,
+          account: payer,
+        });
+      } catch (simErr) {
+        const message = simErr instanceof Error ? simErr.message : String(simErr);
+        const isRevert =
+          /revert|execution failed|PaymentAlreadySettled|InvalidAmount|InvalidMerchant|InvalidAffiliate|InvalidSplitAmounts|TransferFailed/i.test(
+            message,
+          );
+        const isNetwork =
+          /Failed to fetch|fetch failed|HTTP request failed|timeout|ECONN|aborted|socket hang up/i.test(
+            message,
+          );
+
+        if (isRevert) throw simErr;
+        if (!isNetwork) throw simErr;
+
+        console.warn(
+          '[arcpay] simulation skipped after a transport error; continuing:',
+          message,
+        );
+      }
 
       const txHash = await ethereum.request({
         method: 'eth_sendTransaction',
@@ -484,7 +518,12 @@ export class ArcPayButtonElement extends CustomElementBase {
         btn.disabled = false;
         btn.querySelector('span')!.textContent = `Pay $${amount} USDC`;
       }
-      this.dispatchEvent(new CustomEvent('arcpay:error', { detail: { error: err } }));
+      // Keep the full provider/viem detail for debugging; surface short copy.
+      console.error('[arcpay] checkout failed:', err);
+      const humanError = humanizeCheckoutError(err);
+      this.dispatchEvent(new CustomEvent('arcpay:error', {
+        detail: { error: humanError, message: humanError.message, cause: err },
+      }));
     }
   }
 }

@@ -3,14 +3,20 @@ import { createConfig } from 'wagmi';
 import { injected, coinbaseWallet, walletConnect } from 'wagmi/connectors';
 import { arcTestnet, arcMainnet } from '@arcpay/sdk';
 
+// Alchemy first: it has an SLA and survives browser traffic reliably, which
+// the public Arc node does not always. The public endpoint stays as a fallback.
+//
+// The getLogs 10-block cap on Alchemy's free tier is irrelevant here — the web
+// app never calls getLogs. Only the indexer needs wide ranges, and it runs in
+// its own service against RPC_URL (the public node), not this config.
 const testnetSources = [
-  arcTestnet.rpcUrls.default.http[0],
   process.env.NEXT_PUBLIC_ARC_TESTNET_RPC_URL,
+  arcTestnet.rpcUrls.default.http[0],
 ].filter((url): url is string => Boolean(url));
 
 const mainnetSources = [
-  arcMainnet.rpcUrls.default.http[0],
   process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL,
+  arcMainnet.rpcUrls.default.http[0],
 ].filter((url): url is string => Boolean(url));
 
 // WalletConnect needs a Reown Cloud projectId. It is opt-in so the app still
@@ -30,10 +36,6 @@ export const wagmiConfig = createConfig({
       : []),
   ],
   transports: {
-    // Public Arc endpoint is primary (Alchemy's Free tier caps eth_getLogs at a
-    // 10-block range, so it can't serve our backfill); the Alchemy endpoint from
-    // env acts as the fallback for reads / checkout receipts when the public
-    // node errors or times out.
     [arcTestnet.id]: fallback(
       testnetSources.map((url) => http(url, { retryCount: 2 })),
       { retryCount: 1 }
