@@ -66,7 +66,11 @@ const client = createPublicClient({
   transport: http(RPC_URL),
 });
 
-const CURSOR_ID = 'main';
+// Cursor is namespaced per chain. The IndexerCursor table has no chainId
+// column, so a single 'main' row would let the testnet cursor (block ~67M)
+// block a mainnet run (block ~25.9M) behind the reorg guard. Keying by chain
+// keeps both cursors independent without a schema migration.
+const CURSOR_ID = `chain-${CHAIN_ID}`;
 
 interface UpsertArgs {
   orderId: string;

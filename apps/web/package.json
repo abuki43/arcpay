@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "indexer": "tsx --env-file=.env.local scripts/indexer.ts"
+    "indexer": "tsx --env-file-if-exists=.env.local scripts/indexer.ts"
   },
   "dependencies": {
     "@arcpay/sdk": "workspace:*",

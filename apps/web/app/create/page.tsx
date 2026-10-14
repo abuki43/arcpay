@@ -17,7 +17,7 @@ import type { PlanDraft, StudioPricingMode } from '@/components/studio/types';
 export default function PayLinkStudioPage() {
   const { address } = useAccount();
 
-  const [mode, setMode] = useState<StudioPricingMode>('multi_plan');
+  const [mode, setMode] = useState<StudioPricingMode>('single_item');
   const [merchant, setMerchant] = useState<string>('0xf46b169915c5820E9FcdcD79F5AA5B246E32220D');
   const [title, setTitle] = useState<string>('ArcCloud SaaS Platform');
   const [slug, setSlug] = useState<string>('arc-cloud-saas');
