@@ -6,6 +6,7 @@ import { Marquee, Reveal } from '@/components/motion';
 import { Eyebrow } from '@/components/eyebrow';
 import { Button } from '@/components/ui/button';
 import { Terminal, ArrowUpRight, Check } from 'lucide-react';
+import { DEFAULT_APP_CHAIN_ID } from '@/lib/chain-config';
 
 const STEPS = [
   {
@@ -39,7 +40,7 @@ const MARQUEE = [
   'Non-custodial routing',
   'HMAC-signed webhooks',
   'Open-source MIT',
-  'Arc L1 · 5042002',
+  `Arc L1 · ${DEFAULT_APP_CHAIN_ID}`,
 ];
 
 function StepsSection() {

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Zap, Github, ExternalLink, ShieldCheck } from 'lucide-react';
+import { DEFAULT_APP_CHAIN_ID, DEFAULT_CHAIN_LABEL } from '@/lib/chain-config';
 
 const product = [
   { label: 'Storefront Demo', href: '/demo' },
@@ -37,7 +38,7 @@ export function Footer() {
             </p>
             <div className="mt-5 inline-flex items-center gap-2 px-2.5 h-7 rounded-pill border border-line bg-raised text-tiny font-medium text-ink-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent arc-pulse" />
-              <span>Chain 5042002 · Arc Testnet</span>
+              <span>Chain {DEFAULT_APP_CHAIN_ID} · {DEFAULT_CHAIN_LABEL}</span>
             </div>
           </div>
 
@@ -90,7 +91,7 @@ export function Footer() {
             <div className="rounded-ctl border border-line bg-raised divide-y divide-line font-mono text-tiny tabular-nums">
               <div className="flex justify-between px-3 py-2.5">
                 <span className="text-ink-3">Chain ID</span>
-                <span className="text-ink font-medium">5042002</span>
+                <span className="text-ink font-medium">{DEFAULT_APP_CHAIN_ID}</span>
               </div>
               <div className="flex justify-between px-3 py-2.5">
                 <span className="text-ink-3">Gas Asset</span>

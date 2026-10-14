@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { DEFAULT_APP_CHAIN_ID } from '@/lib/chain-config';
 
 interface ApiSettlement {
   orderId: string;
@@ -137,7 +138,7 @@ export function LiveLedger({ limit = 8 }: { limit?: number }) {
       )}
 
       <div className="px-4 h-9 border-t border-line flex items-center justify-between text-nano uppercase tracking-mono-cap text-ink-3">
-        <span>Arc L1 · chain 5042002</span>
+        <span>Arc L1 · chain {DEFAULT_APP_CHAIN_ID}</span>
         <a
           href="/network"
           className="text-ink-2 hover:text-accent transition-colors"
