@@ -9,6 +9,7 @@ import {
 } from 'viem';
 import { ARC_PAYMENT_GATEWAY_ABI } from './abi';
 import {
+  DEFAULT_CHAIN_ID,
   DEFAULT_GATEWAY_ADDRESSES,
   SUPPORTED_CHAINS,
   arcTestnet,
@@ -30,6 +31,7 @@ import {
   parseUsdc,
   shortenAddress,
 } from './utils';
+import { discoverWallet, switchToChain } from './wallet';
 
 // -----------------------------------------------------------------------------
 // Design tokens — ArcPay "Instrument" theme
@@ -162,15 +164,15 @@ export function useCheckout(): UseCheckoutReturn {
       reset();
       setIsConnecting(true);
 
-      const chainId = params.chainId || 5042002;
+      const chainId = params.chainId || DEFAULT_CHAIN_ID;
       const targetChain = SUPPORTED_CHAINS[chainId] || arcTestnet;
       const rpcUrl = params.rpcUrl;
       const gatewayAddress =
         params.contractAddress ||
         DEFAULT_GATEWAY_ADDRESSES[chainId] ||
-        DEFAULT_GATEWAY_ADDRESSES[5042002];
+        DEFAULT_GATEWAY_ADDRESSES[DEFAULT_CHAIN_ID];
 
-      const ethereum = typeof window !== 'undefined' ? (window as any).ethereum : null;
+      const ethereum = await discoverWallet();
       if (!ethereum) {
         const err = new Error('No EVM wallet found. Please install MetaMask, Rabby, or an Arc-compatible browser wallet.');
         setError(err);
@@ -179,71 +181,74 @@ export function useCheckout(): UseCheckoutReturn {
       }
 
       try {
-        // 1. Request account access
         const accounts: string[] = await ethereum.request({ method: 'eth_requestAccounts' });
         if (!accounts || accounts.length === 0) {
           throw new Error('No wallet accounts selected.');
         }
         const payer = getAddress(accounts[0]);
 
-        // 2. Switch or add Arc Network
-        const chainHex = `0x${chainId.toString(16)}`;
-        try {
-          await ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: chainHex }],
-          });
-        } catch (switchError: any) {
-          if (switchError.code === 4902 || switchError.message?.includes('Unrecognized chain')) {
-            await ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [getChainParams(chainId, rpcUrl)],
-            });
-          } else {
-            throw switchError;
-          }
-        }
+        await switchToChain(ethereum, chainId, rpcUrl);
 
         setIsConnecting(false);
         setIsPaying(true);
 
-        // 3. Prepare order & payment call
         const orderId = params.orderId || generateOrderId('arcpay');
         const grossAmount = parseUsdc(params.amount);
+        if (grossAmount === 0n) {
+          throw new Error('Payment amount must be greater than 0.');
+        }
         const metadataStr =
           typeof params.metadata === 'object'
             ? JSON.stringify(params.metadata)
             : params.metadata || '';
 
         let data: `0x${string}`;
+        let functionName: 'payNative' | 'payNativeWithSplit';
+        let args: readonly [`0x${string}`, `0x${string}`, string] | readonly [`0x${string}`, `0x${string}`, bigint, `0x${string}`, bigint, string];
 
         if (params.affiliate && params.affiliateAmount) {
           const affAmount = parseUsdc(params.affiliateAmount);
+          if (affAmount === 0n) {
+            throw new Error('Affiliate amount must be greater than 0.');
+          }
           const fee = (grossAmount * BigInt(PROTOCOL_FEE_BPS)) / BigInt(BPS_DIVISOR);
           const net = grossAmount - fee;
           const merchAmount = net - affAmount;
 
-          data = encodeFunctionData({
-            abi: ARC_PAYMENT_GATEWAY_ABI,
-            functionName: 'payNativeWithSplit',
-            args: [
-              orderId,
-              getAddress(params.merchant),
-              merchAmount,
-              getAddress(params.affiliate),
-              affAmount,
-              metadataStr,
-            ],
-          });
+          functionName = 'payNativeWithSplit';
+          args = [
+            orderId,
+            getAddress(params.merchant),
+            merchAmount,
+            getAddress(params.affiliate),
+            affAmount,
+            metadataStr,
+          ];
         } else {
-          data = encodeFunctionData({
-            abi: ARC_PAYMENT_GATEWAY_ABI,
-            functionName: 'payNative',
-            args: [orderId, getAddress(params.merchant), metadataStr],
-          });
+          functionName = 'payNative';
+          args = [orderId, getAddress(params.merchant), metadataStr];
         }
 
-        // 4. Send 1-Click Native Transaction (msg.value)
+        data = encodeFunctionData({
+          abi: ARC_PAYMENT_GATEWAY_ABI,
+          functionName,
+          args,
+        });
+
+        const publicClient = createPublicClient({
+          chain: targetChain,
+          transport: rpcUrl ? http(rpcUrl) : http(),
+        });
+
+        await publicClient.simulateContract({
+          address: gatewayAddress,
+          abi: ARC_PAYMENT_GATEWAY_ABI,
+          functionName,
+          args,
+          value: grossAmount,
+          account: payer,
+        });
+
         const txHash: Hash = await ethereum.request({
           method: 'eth_sendTransaction',
           params: [
@@ -256,29 +261,16 @@ export function useCheckout(): UseCheckoutReturn {
           ],
         });
 
-        // 5. Wait for on-chain confirmation & receipt (~600ms on Arc)
-        const publicClient = createPublicClient({
-          chain: targetChain,
-          transport: rpcUrl ? http(rpcUrl) : http(),
+        const txReceipt = await publicClient.waitForTransactionReceipt({
+          hash: txHash,
+          timeout: 30_000,
         });
 
-        let blockNumber = 0n;
-        try {
-          const txReceipt = await publicClient.waitForTransactionReceipt({
-            hash: txHash,
-            timeout: 30_000,
-          });
-
-          if (txReceipt.status !== 'success') {
-            throw new Error('Transaction was reverted on Arc Network.');
-          }
-          blockNumber = txReceipt.blockNumber;
-        } catch (receiptErr: any) {
-          if (receiptErr.message?.includes('reverted')) {
-            throw receiptErr;
-          }
-          // Non-blocking fallback for edge-case RPC polling latency
+        if (txReceipt.status !== 'success') {
+          throw new Error('Transaction was reverted on Arc Network.');
         }
+
+        const blockNumber = txReceipt.blockNumber;
 
         // 6. Construct settled receipt
         const fee = (grossAmount * BigInt(PROTOCOL_FEE_BPS)) / BigInt(BPS_DIVISOR);
@@ -333,7 +325,7 @@ export function CheckoutModal({
   theme = 'instrument',
 }: CheckoutModalProps) {
   const { checkout, isConnecting, isPaying, isSuccess, error, receipt, reset } = useCheckout();
-  const chainId = params.chainId || 5042002;
+  const chainId = params.chainId || DEFAULT_CHAIN_ID;
   const useInstrument = isInstrument(theme);
   const useLight = isInstrumentLight(theme);
 
@@ -950,7 +942,7 @@ export function ArcPayButton({
   size = 'md',
   className = '',
   style = {},
-  chainId = 5042002,
+  chainId = DEFAULT_CHAIN_ID,
   contractAddress,
   rpcUrl,
   onSuccess,

@@ -78,3 +78,5 @@ export const DEFAULT_GATEWAY_ADDRESSES: Record<number, `0x${string}`> = {
   5042002: '0xd35be28A0b54Dd4559494b2328E1Cb7C3f0318B7', // Default Arc Testnet Gateway
   5042: '0x0000000000000000000000000000000000000000',    // Staging Arc Mainnet Gateway
 };
+
+export const DEFAULT_CHAIN_ID = 5042002;

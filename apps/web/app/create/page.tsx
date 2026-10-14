@@ -96,8 +96,8 @@ export default function PayLinkStudioPage() {
             <span className="font-medium italic text-accent">PayLink</span>.
           </h1>
           <p className="mt-4 text-lead text-ink-3 leading-relaxed">
-            Generate shareable payment links with fixed prices or tiered options,
-            email collection, and instant ~600ms settlement.
+            Generate shareable payment links with fixed prices, tiered options,
+            and email collection.
           </p>
         </div>
 

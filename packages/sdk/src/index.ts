@@ -24,4 +24,7 @@ export * from './server';
 // Universal Web Component
 export * from './element';
 
-export const SDK_VERSION = '0.1.0';
+// Wallet Discovery & Chain Switching
+export * from './wallet';
+
+export const SDK_VERSION = '0.2.0';

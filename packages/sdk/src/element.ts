@@ -1,7 +1,9 @@
 import { getAddress, encodeFunctionData, createPublicClient, http } from 'viem';
+import QRCode from 'qrcode';
 import { ARC_PAYMENT_GATEWAY_ABI } from './abi';
-import { DEFAULT_GATEWAY_ADDRESSES, SUPPORTED_CHAINS, arcTestnet, arcMainnet } from './constants';
+import { DEFAULT_CHAIN_ID, DEFAULT_GATEWAY_ADDRESSES, SUPPORTED_CHAINS, arcTestnet, PROTOCOL_FEE_BPS, BPS_DIVISOR } from './constants';
 import { generateOrderId, parseUsdc, formatUsdc } from './utils';
+import { discoverWallet, switchToChain } from './wallet';
 
 // SSR-safe base class
 const CustomElementBase: { new (): HTMLElement } =
@@ -24,7 +26,7 @@ const CustomElementBase: { new (): HTMLElement } =
  */
 export class ArcPayButtonElement extends CustomElementBase {
   static get observedAttributes() {
-    return ['merchant', 'amount', 'item', 'theme', 'chain-id', 'contract-address', 'metadata', 'rpc-url'];
+    return ['merchant', 'amount', 'item', 'theme', 'chain-id', 'contract-address', 'metadata', 'rpc-url', 'affiliate', 'affiliate-amount'];
   }
 
   private shadow?: ShadowRoot;
@@ -352,22 +354,26 @@ export class ArcPayButtonElement extends CustomElementBase {
     const amount = this.getAttribute('amount');
     const item = this.getAttribute('item') || 'Order';
     const metadataStr = this.getAttribute('metadata') || '';
-    const chainId = parseInt(this.getAttribute('chain-id') || '5042002', 10);
+    const chainId = parseInt(this.getAttribute('chain-id') || String(DEFAULT_CHAIN_ID), 10);
     const customContract = this.getAttribute('contract-address');
     const rpcUrl = this.getAttribute('rpc-url') || undefined;
+    const affiliate = this.getAttribute('affiliate');
+    const affiliateAmount = this.getAttribute('affiliate-amount');
 
     if (!merchant || !amount) {
       this.dispatchEvent(new CustomEvent('arcpay:error', { detail: { message: 'Missing merchant or amount attribute' } }));
       return;
     }
 
-    const ethereum = typeof window !== 'undefined' ? (window as any).ethereum : null;
+    const ethereum = await discoverWallet();
     const targetChain = SUPPORTED_CHAINS[chainId] || arcTestnet;
 
-    // Mobile fallback modal if no injected wallet found
     if (!ethereum) {
       const payUrl = `${window.location.origin}/pay?merchant=${merchant}&amount=${amount}&item=${encodeURIComponent(item)}&chainId=${chainId}`;
-      if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(payUrl)}`;
+      if (qrImg) {
+        const dataUrl = await QRCode.toDataURL(payUrl, { width: 160, margin: 1 });
+        qrImg.src = dataUrl;
+      }
       if (mmLink) mmLink.href = `https://metamask.app.link/dapp/${window.location.host}/pay?merchant=${merchant}&amount=${amount}&chainId=${chainId}`;
       if (modal) {
         modal.classList.add('open');
@@ -385,41 +391,59 @@ export class ArcPayButtonElement extends CustomElementBase {
 
       const accounts: string[] = await ethereum.request({ method: 'eth_requestAccounts' });
       const payer = getAddress(accounts[0]);
-      const chainHex = `0x${chainId.toString(16)}`;
 
-      try {
-        await ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: chainHex }],
-        });
-      } catch (switchErr: any) {
-        if (switchErr.code === 4902) {
-          await ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: chainHex,
-              chainName: targetChain.name,
-              nativeCurrency: targetChain.nativeCurrency,
-              rpcUrls: [rpcUrl || targetChain.rpcUrls.default.http[0]],
-              blockExplorerUrls: [targetChain.blockExplorers?.default.url],
-            }],
-          });
-        }
-      }
+      await switchToChain(ethereum, chainId, rpcUrl);
 
       if (btn) btn.querySelector('span')!.textContent = 'Confirming on Arc (~600ms)…';
 
       const orderId = generateOrderId('arcpay');
       const grossAmount = parseUsdc(amount);
+      if (grossAmount === 0n) {
+        throw new Error('Payment amount must be greater than 0.');
+      }
       const gatewayAddress =
         (customContract as `0x${string}`) ||
         DEFAULT_GATEWAY_ADDRESSES[chainId] ||
-        DEFAULT_GATEWAY_ADDRESSES[5042002];
+        DEFAULT_GATEWAY_ADDRESSES[DEFAULT_CHAIN_ID];
 
-      const data = encodeFunctionData({
+      let data: `0x${string}`;
+      let functionName: 'payNative' | 'payNativeWithSplit';
+      let args: readonly [`0x${string}`, `0x${string}`, string] | readonly [`0x${string}`, `0x${string}`, bigint, `0x${string}`, bigint, string];
+
+      if (affiliate && affiliateAmount) {
+        const affAmount = parseUsdc(affiliateAmount);
+        if (affAmount === 0n) {
+          throw new Error('Affiliate amount must be greater than 0.');
+        }
+        const fee = (grossAmount * BigInt(PROTOCOL_FEE_BPS)) / BigInt(BPS_DIVISOR);
+        const net = grossAmount - fee;
+        const merchAmount = net - affAmount;
+
+        functionName = 'payNativeWithSplit';
+        args = [orderId, getAddress(merchant), merchAmount, getAddress(affiliate), affAmount, metadataStr];
+      } else {
+        functionName = 'payNative';
+        args = [orderId, getAddress(merchant), metadataStr];
+      }
+
+      data = encodeFunctionData({
         abi: ARC_PAYMENT_GATEWAY_ABI,
-        functionName: 'payNative',
-        args: [orderId, getAddress(merchant), metadataStr],
+        functionName,
+        args,
+      });
+
+      const publicClient = createPublicClient({
+        chain: targetChain,
+        transport: rpcUrl ? http(rpcUrl) : http(),
+      });
+
+      await publicClient.simulateContract({
+        address: gatewayAddress,
+        abi: ARC_PAYMENT_GATEWAY_ABI,
+        functionName,
+        args,
+        value: grossAmount,
+        account: payer,
       });
 
       const txHash = await ethereum.request({
@@ -432,25 +456,16 @@ export class ArcPayButtonElement extends CustomElementBase {
         }],
       });
 
-      // Wait for transaction receipt
-      const publicClient = createPublicClient({
-        chain: targetChain,
-        transport: rpcUrl ? http(rpcUrl) : http(),
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: txHash,
+        timeout: 30_000,
       });
 
-      let blockNumber = 0n;
-      try {
-        const receipt = await publicClient.waitForTransactionReceipt({
-          hash: txHash,
-          timeout: 30_000,
-        });
-        if (receipt.status !== 'success') {
-          throw new Error('Transaction reverted on Arc.');
-        }
-        blockNumber = receipt.blockNumber;
-      } catch (rErr: any) {
-        if (rErr.message?.includes('reverted')) throw rErr;
+      if (receipt.status !== 'success') {
+        throw new Error('Transaction reverted on Arc.');
       }
+
+      const blockNumber = receipt.blockNumber;
 
       if (btn) btn.querySelector('span')!.textContent = 'Paid!';
 
