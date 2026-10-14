@@ -33,8 +33,9 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/react.tsx src/server.ts src/element.ts src/utils.ts --format cjs,esm --dts --clean",
-    "dev": "tsup src/index.ts src/react.tsx src/server.ts src/element.ts src/utils.ts --format cjs,esm --dts --watch"
+    "build": "tsup src/index.ts src/react.tsx src/server.ts src/element.ts src/utils.ts --platform browser --format cjs,esm --dts --clean && pnpm check:bundle",
+    "dev": "tsup src/index.ts src/react.tsx src/server.ts src/element.ts src/utils.ts --platform browser --format cjs,esm --dts --watch",
+    "check:bundle": "node scripts/check-browser-bundle.mjs"
   },
   "dependencies": {
     "viem": "^2.23.0"
