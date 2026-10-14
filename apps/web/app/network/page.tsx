@@ -25,7 +25,6 @@ import {
   PieChart,
   RefreshCcw,
   Search,
-  ShieldCheck,
 } from 'lucide-react';
 
 export default function NetworkStatsPage() {
@@ -112,17 +111,6 @@ export default function NetworkStatsPage() {
             Protocol-wide{' '}
             <span className="font-medium italic text-accent">volume</span>.
           </h1>
-        </Reveal>
-
-        <Reveal>
-          <div className="mb-8 p-4 rounded-ctl border border-line bg-surface flex items-start gap-3">
-            <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-            <p className="text-tiny text-ink-3 leading-relaxed">
-              Aggregate data only. The network page shows totals and anonymous
-              settlement amounts — it never exposes payer identities, order
-              metadata, or split breakdowns.
-            </p>
-          </div>
         </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-ctl overflow-hidden mb-10">

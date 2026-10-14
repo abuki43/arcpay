@@ -1,8 +1,17 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useSettlementFeed } from '@/lib/use-settlement-feed';
+import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
+
+interface ApiSettlement {
+  orderId: string;
+  merchant: string;
+  gross: string;
+  protocolFee: string;
+  kind: 'direct' | 'split';
+  txHash: string;
+  timestamp: number;
+}
 
 function shortAddr(a: string): string {
   if (!a) return '0x…';
@@ -14,8 +23,10 @@ function shortHash(h: string): string {
   return `${h.slice(0, 6)}…${h.slice(-4)}`;
 }
 
-function formatUsdc(wei: bigint | number): string {
-  const n = typeof wei === 'bigint' ? Number(wei) / 1e18 : wei / 1e18;
+function formatUsdc(wei: bigint | number | string): string {
+  const n = typeof wei === 'bigint' ? Number(wei) / 1e18
+    : typeof wei === 'string' ? Number(wei) / 1e18
+    : wei / 1e18;
   if (n === 0) return '0.00';
   if (n < 0.01) return n.toFixed(4);
   if (n < 100) return n.toFixed(2);
@@ -31,20 +42,48 @@ function timeAgo(ms: number): string {
 }
 
 export function LiveLedger({ limit = 8 }: { limit?: number }) {
-  const { items, isLoading } = useSettlementFeed({ limit });
+  const [items, setItems] = useState<ApiSettlement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchLedger() {
+      try {
+        const res = await fetch(`/api/settlements?limit=${limit}&page=1`, {
+          cache: 'no-store',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) {
+          setItems(data.settlements ?? []);
+          setIsLoading(false);
+        }
+      } catch {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    fetchLedger();
+    const tick = setInterval(fetchLedger, 10_000);
+    return () => {
+      cancelled = true;
+      clearInterval(tick);
+    };
+  }, [limit]);
 
   const rows = useMemo(
     () =>
       items.slice(0, limit).map((it) => ({
         order: it.orderId,
         merchant: it.merchant,
-        gross: it.gross,
-        fee: it.protocolFee,
+        gross: BigInt(it.gross),
+        fee: BigInt(it.protocolFee),
         kind: it.kind,
         hash: it.txHash,
         ts: it.timestamp,
       })),
-    [items, limit]
+    [items, limit],
   );
 
   return (
@@ -61,11 +100,11 @@ export function LiveLedger({ limit = 8 }: { limit?: number }) {
 
       {isLoading && rows.length === 0 ? (
         <div className="px-4 py-10 text-center text-tiny font-mono text-ink-3">
-          Scanning recent blocks on Arc…
+          Loading indexed activity…
         </div>
       ) : rows.length === 0 ? (
         <div className="px-4 py-10 text-center text-tiny font-mono text-ink-3">
-          No settlements indexed on this RPC yet.
+          No settlements indexed yet.
         </div>
       ) : (
         <ul className="divide-y divide-line font-mono text-tiny">
@@ -78,7 +117,7 @@ export function LiveLedger({ limit = 8 }: { limit?: number }) {
                 <span
                   className={cn(
                     'inline-flex items-center justify-center w-1.5 h-1.5 rounded-full shrink-0',
-                    r.kind === 'split' ? 'bg-ink-2' : 'bg-accent'
+                    r.kind === 'split' ? 'bg-ink-2' : 'bg-accent',
                   )}
                   aria-hidden
                 />
