@@ -1,7 +1,7 @@
 import { getAddress, encodeFunctionData, createPublicClient, fallback, http } from 'viem';
 import QRCode from 'qrcode';
 import { ARC_PAYMENT_GATEWAY_ABI } from './abi';
-import { DEFAULT_CHAIN_ID, DEFAULT_GATEWAY_ADDRESSES, SUPPORTED_CHAINS, arcTestnet, PROTOCOL_FEE_BPS, BPS_DIVISOR } from './constants';
+import { DEFAULT_CHAIN_ID, DEFAULT_GATEWAY_ADDRESSES, SUPPORTED_CHAINS, arcMainnet, PROTOCOL_FEE_BPS, BPS_DIVISOR } from './constants';
 import { generateOrderId, parseUsdc, formatUsdc } from './utils';
 import { discoverWallet, switchToChain } from './wallet';
 import { humanizeCheckoutError } from './errors';
@@ -57,6 +57,10 @@ export class ArcPayButtonElement extends CustomElementBase {
     const amount = this.getAttribute('amount') || '0';
     const item = this.getAttribute('item') || 'One-Time Purchase';
     const theme = this.getAttribute('theme') || 'instrument';
+    // Guard the parse: a non-numeric chain-id would otherwise render "NaN"
+    // in the modal subtitle.
+    const parsedChainId = parseInt(this.getAttribute('chain-id') || '', 10);
+    const chainId = Number.isFinite(parsedChainId) ? parsedChainId : DEFAULT_CHAIN_ID;
 
     const isInstr = theme === 'instrument' || theme === 'instrument-light';
     const isLight = theme === 'instrument-light';
@@ -302,7 +306,7 @@ export class ArcPayButtonElement extends CustomElementBase {
             </div>
             <div>
               <div class="arc-modal-title">ArcPay checkout</div>
-              <div class="arc-modal-subtitle">Arc L1 · 5042002 · native USDC</div>
+              <div class="arc-modal-subtitle">${chainId === 5042 ? 'Arc mainnet' : 'Arc testnet'} · ${chainId} · native USDC</div>
             </div>
           </div>
           <div class="arc-modal-order">
@@ -370,7 +374,7 @@ export class ArcPayButtonElement extends CustomElementBase {
     }
 
     const ethereum = await discoverWallet();
-    const targetChain = SUPPORTED_CHAINS[chainId] || arcTestnet;
+    const targetChain = SUPPORTED_CHAINS[chainId] || arcMainnet;
 
     if (!ethereum) {
       const payUrl = `${window.location.origin}/pay?merchant=${merchant}&amount=${amount}&item=${encodeURIComponent(item)}&chainId=${chainId}`;

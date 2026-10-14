@@ -6,7 +6,7 @@ import {
   http,
 } from 'viem';
 import { ARC_PAYMENT_GATEWAY_ABI } from './abi';
-import { DEFAULT_GATEWAY_ADDRESSES, SUPPORTED_CHAINS, arcTestnet } from './constants';
+import { DEFAULT_CHAIN_ID, DEFAULT_GATEWAY_ADDRESSES, SUPPORTED_CHAINS, arcMainnet } from './constants';
 import type { VerificationResult, VerifyPaymentParams } from './types';
 import { formatUsdc, parseUsdc } from './utils';
 
@@ -20,13 +20,13 @@ import { formatUsdc, parseUsdc } from './utils';
 export async function verifyArcPayment(
   params: VerifyPaymentParams
 ): Promise<VerificationResult> {
-  const chainId = params.chainId || 5042002;
-  const chain = SUPPORTED_CHAINS[chainId] || arcTestnet;
+  const chainId = params.chainId || DEFAULT_CHAIN_ID;
+  const chain = SUPPORTED_CHAINS[chainId] || arcMainnet;
 
   const contractAddress =
     params.contractAddress ||
     DEFAULT_GATEWAY_ADDRESSES[chainId] ||
-    DEFAULT_GATEWAY_ADDRESSES[5042002];
+    DEFAULT_GATEWAY_ADDRESSES[DEFAULT_CHAIN_ID];
 
   try {
     const publicClient = createPublicClient({

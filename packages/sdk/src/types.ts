@@ -37,7 +37,7 @@ export interface CheckoutParams {
    * to guarantee replay protection on retries and renewals.
    */
   orderId?: `0x${string}`;
-  /** Target Chain ID (default 5042002 for Arc Testnet, 5042 for Arc Mainnet) */
+  /** Target Chain ID (default 5042 for Arc Mainnet, 5042002 for Arc Testnet) */
   chainId?: number;
   /** Custom gateway contract address override */
   contractAddress?: Address;
@@ -72,7 +72,7 @@ export interface VerifyPaymentParams {
   expectedAmount?: number | string | bigint;
   /** Maximum acceptable age of settlement in seconds (e.g. 3600 for 1 hour) */
   maxAgeSeconds?: number;
-  /** Arc Chain ID (default 5042002 for Testnet, 5042 for Mainnet) */
+  /** Arc Chain ID (default 5042 for Mainnet, 5042002 for Testnet) */
   chainId?: number;
   /** Custom RPC URL override */
   rpcUrl?: string;
@@ -148,7 +148,7 @@ export interface ArcPayButtonProps {
   className?: string;
   /** Extra inline styles */
   style?: Record<string, any>;
-  /** Target Chain ID (default 5042002) */
+  /** Target Chain ID (default 5042 for Arc Mainnet) */
   chainId?: number;
   /** Custom contract address override */
   contractAddress?: Address;

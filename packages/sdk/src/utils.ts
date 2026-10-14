@@ -5,7 +5,7 @@ import {
   parseUnits,
   stringToBytes,
 } from 'viem';
-import { BPS_DIVISOR, PROTOCOL_FEE_BPS, SUPPORTED_CHAINS, USDC_DECIMALS, arcTestnet } from './constants';
+import { BPS_DIVISOR, PROTOCOL_FEE_BPS, SUPPORTED_CHAINS, USDC_DECIMALS, arcMainnet } from './constants';
 import type { CheckoutParams } from './types';
 
 /**
@@ -89,12 +89,12 @@ export function calculateArcFee(
 
 /**
  * Returns block explorer transaction URL for any supported Arc chain
- * @param chainId Target Chain ID (5042002 for Testnet, 5042 for Mainnet)
+ * @param chainId Target Chain ID (5042 for Mainnet, 5042002 for Testnet)
  * @param txHash Transaction hash
  */
 export function getExplorerTxUrl(chainId: number, txHash: string): string {
-  const chain = SUPPORTED_CHAINS[chainId] || arcTestnet;
-  const baseUrl = chain.blockExplorers?.default.url || 'https://explorer.testnet.arc.io';
+  const chain = SUPPORTED_CHAINS[chainId] || arcMainnet;
+  const baseUrl = chain.blockExplorers?.default.url || 'https://explorer.arc.io';
   return `${baseUrl}/tx/${txHash}`;
 }
 

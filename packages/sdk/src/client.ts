@@ -5,7 +5,7 @@ import {
   http,
 } from 'viem';
 import { ARC_PAYMENT_GATEWAY_ABI } from './abi';
-import { DEFAULT_GATEWAY_ADDRESSES, SUPPORTED_CHAINS, arcTestnet } from './constants';
+import { DEFAULT_CHAIN_ID, DEFAULT_GATEWAY_ADDRESSES, SUPPORTED_CHAINS, arcMainnet } from './constants';
 import type { PaymentRecord } from './types';
 import { parseUsdc } from './utils';
 
@@ -24,13 +24,13 @@ export class ArcPayClient {
   public readonly publicClient: PublicClient;
 
   constructor(config: ArcPayClientConfig = {}) {
-    this.chainId = config.chainId || 5042002;
-    const chain = SUPPORTED_CHAINS[this.chainId] || arcTestnet;
+    this.chainId = config.chainId || DEFAULT_CHAIN_ID;
+    const chain = SUPPORTED_CHAINS[this.chainId] || arcMainnet;
 
     this.contractAddress =
       config.contractAddress ||
       DEFAULT_GATEWAY_ADDRESSES[this.chainId] ||
-      DEFAULT_GATEWAY_ADDRESSES[5042002];
+      DEFAULT_GATEWAY_ADDRESSES[DEFAULT_CHAIN_ID];
 
     this.publicClient = createPublicClient({
       chain,

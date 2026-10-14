@@ -170,7 +170,7 @@ export function useCheckout(): UseCheckoutReturn {
       setIsConnecting(true);
 
       const chainId = params.chainId || DEFAULT_CHAIN_ID;
-      const targetChain = SUPPORTED_CHAINS[chainId] || arcTestnet;
+      const targetChain = SUPPORTED_CHAINS[chainId] || arcMainnet;
       const rpcUrl = params.rpcUrl;
       const gatewayAddress =
         params.contractAddress ||
@@ -532,7 +532,7 @@ export function CheckoutModal({
                     marginTop: '2px',
                   }}
                 >
-                  {chainId === 5042 ? 'Arc mainnet' : 'Arc testnet'} · 5042002 · native USDC
+                  {chainId === 5042 ? 'Arc mainnet' : 'Arc testnet'} · {chainId} · native USDC
                 </div>
               </div>
             </div>

@@ -79,4 +79,7 @@ export const DEFAULT_GATEWAY_ADDRESSES: Record<number, `0x${string}`> = {
   5042: '0x6A1aAc76FF4A9F1F2370E6578aC53DBdF5143815',   // Arc Mainnet Gateway
 };
 
-export const DEFAULT_CHAIN_ID = 5042002;
+// Mainnet is the real deployment. A silent testnet fallback would send live
+// USDC to the sandbox gateway and still render a success receipt, so anything
+// reaching a fallback without an explicit chainId lands on the real contract.
+export const DEFAULT_CHAIN_ID = 5042;
