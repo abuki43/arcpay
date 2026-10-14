@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArcPayButton } from '@arcpay/sdk/react';
+import { getExplorerTxUrl } from '@arcpay/sdk';
 import confetti from 'canvas-confetti';
 import { Eyebrow } from './eyebrow';
 import { Reveal } from './motion';
@@ -10,13 +11,36 @@ import { Button } from '@/components/ui/button';
 import { Check, Zap, ExternalLink, ArrowUpRight } from 'lucide-react';
 
 const DEMO_MERCHANT = '0xf46b169915c5820E9FcdcD79F5AA5B246E32220D';
-const DEMO_RPC_URL = process.env.NEXT_PUBLIC_ARC_TESTNET_RPC_URL || undefined;
 const CONFETTI_COLORS = ['#F5A524', '#E89216', '#FFCB6B', '#FFFFFF'];
 
 const PLANS = [
-  { name: 'Starter', tag: 'Hobby', price: '$9.00', desc: 'For indie developers testing micro-services and Web3 SaaS prototypes.', features: ['10,000 API calls / month', 'Sub-second ~600ms settlement', '0.40% protocol fee'], featured: false },
-  { name: 'Pro Plan', tag: 'Scaling SaaS', price: '$29.00', desc: 'Infrastructure for high-growth SaaS and automated agent platforms.', features: ['Unlimited API requests', 'Direct merchant payout (99.6%)', 'PayLink Studio generator', 'Server verification SDK'], featured: true },
-  { name: 'Enterprise', tag: 'Platforms', price: '$99.00', desc: 'For platforms needing affiliate splits, marketplace payouts, and custom routing.', features: ['Affiliate / split payment routing', 'Real-time WebSocket event streaming', 'Dedicated Arc RPC node routing'], featured: false },
+  {
+    name: 'Micro',
+    tag: 'Hobby',
+    price: '$0.10',
+    amount: 0.1,
+    desc: 'A single on-chain payment — the smallest test that still exercises the real gateway.',
+    features: ['Real mainnet payment', 'Sub-second ~600ms settlement', '0.40% protocol fee'],
+    featured: false,
+  },
+  {
+    name: 'Standard',
+    tag: 'Popular',
+    price: '$0.50',
+    amount: 0.5,
+    desc: 'The full checkout path, including the fee split and the indexed settlement landing in the dashboard.',
+    features: ['Direct merchant payout (99.6%)', 'Indexed to Postgres in ~60s', 'No custody, no escrow'],
+    featured: true,
+  },
+  {
+    name: 'Pro',
+    tag: 'Full flow',
+    price: '$1.00',
+    amount: 1.0,
+    desc: 'Exercises the gateway end to end, including split routing and server-side verification.',
+    features: ['Affiliate / split payment routing', 'Server verification SDK', 'Dedicated Arc RPC routing'],
+    featured: false,
+  },
 ];
 
 export function StorefrontDemo() {
@@ -39,7 +63,7 @@ export function StorefrontDemo() {
           <p className="mt-4 text-lead text-ink-3 max-w-2xl mx-auto leading-relaxed">
             Click any plan to trigger the live{' '}
             <code className="font-mono text-tiny text-accent">@arcpay/sdk</code>{' '}
-            checkout modal. Pay with Circle Faucet USDC on Arc Testnet and settle in ~600ms.
+            checkout modal against the deployed Arc mainnet gateway. Pay real USDC and settle in ~600ms.
           </p>
         </Reveal>
 
@@ -61,7 +85,7 @@ export function StorefrontDemo() {
               </div>
             </div>
             <a
-              href={`https://explorer.testnet.arc.io/tx/${lastReceipt.txHash}`}
+              href={getExplorerTxUrl(5042, lastReceipt.txHash)}
               target="_blank" rel="noreferrer"
               className="text-tiny font-medium text-accent hover:text-accent-2 inline-flex items-center gap-1.5 shrink-0"
             >
@@ -84,7 +108,7 @@ export function StorefrontDemo() {
 
                 <div className="flex items-baseline gap-1.5 mb-4">
                   <span className={`font-mono text-h3 font-semibold tabular-nums ${plan.featured ? 'text-accent' : 'text-ink'}`}>{plan.price}</span>
-                  <span className="text-tiny font-mono text-ink-3">USDC / mo</span>
+                  <span className="text-tiny font-mono text-ink-3">USDC</span>
                 </div>
 
                 <p className="text-tiny text-ink-3 leading-relaxed mb-5">{plan.desc}</p>
@@ -101,13 +125,12 @@ export function StorefrontDemo() {
                 <div className="mt-auto">
                   <ArcPayButton
                     merchant={DEMO_MERCHANT}
-                    amount={plan.featured ? 29.0 : plan.name === 'Starter' ? 9.0 : 99.0}
+                    amount={plan.amount}
                     item={`CloudAI ${plan.name}`}
-                    metadata={{ plan: plan.name.toLowerCase().split(' ')[0] }}
+                    metadata={{ plan: plan.name.toLowerCase() }}
                     theme={plan.featured ? 'instrument' : 'instrument-light'}
                     size={plan.featured ? 'lg' : 'md'}
                     className="w-full"
-                    rpcUrl={DEMO_RPC_URL}
                     onSuccess={handlePaymentSuccess}
                   />
                   <div className="mt-2 text-center text-nano uppercase tracking-mono-cap text-ink-3 font-mono">

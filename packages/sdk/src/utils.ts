@@ -62,6 +62,31 @@ export function formatUsdc(amount: bigint, maxFractionDigits: number = 2): strin
 }
 
 /**
+ * Half-up rounding to N decimals. formatUsdc truncates, which makes a
+ * displayed net of 0.0996 render as "0.09" and stops fee + net from
+ * summing to the gross the payer actually signed.
+ */
+function formatRounded(amount: bigint, decimals: number): string {
+  const scale = 10n ** BigInt(USDC_DECIMALS - decimals);
+  const rounded = (amount * 2n + scale) / (scale * 2n);
+  return formatUsdc(rounded * scale, decimals);
+}
+
+/**
+ * Adaptive precision for the fee breakdown. A sub-cent fee renders as
+ * "0.00" at two decimals, which reads as "no fee charged" rather than as
+ * a precise sub-cent amount.
+ */
+function formatFeeParts(protocolFee: bigint, netAmount: bigint): [string, string] {
+  const feeTwoDp = formatRounded(protocolFee, 2);
+  const decimals = feeTwoDp === '0.00' && protocolFee > 0n ? 6 : 2;
+  return [
+    formatRounded(protocolFee, decimals),
+    formatRounded(netAmount, decimals),
+  ];
+}
+
+/**
  * Computes protocol fee breakdown for any gross amount
  * @param grossAmount Gross payment amount (number, string, or bigint)
  * @param feeBps Fee in basis points (default: 40 = 0.40%)
@@ -78,12 +103,13 @@ export function calculateArcFee(
   const gross = parseUsdc(grossAmount);
   const protocolFee = (gross * BigInt(feeBps)) / BigInt(BPS_DIVISOR);
   const netAmount = gross - protocolFee;
+  const [formattedFee, formattedNet] = formatFeeParts(protocolFee, netAmount);
 
   return {
     protocolFee,
     netAmount,
-    formattedFee: formatUsdc(protocolFee, 2),
-    formattedNet: formatUsdc(netAmount, 2),
+    formattedFee,
+    formattedNet,
   };
 }
 
