@@ -12,7 +12,6 @@ import {
 } from '@arcpay/sdk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Zap,
   ShieldCheck,
@@ -117,7 +116,7 @@ export default function HostedSlugPayPage({
           planId: activePlan?.id || null,
           buyerEmail: buyerEmail || null,
           buyerHandle: buyerHandle || null,
-          chainId: chainId || 5042002,
+          chainId: chainId,
           metadata: {
             title: payLink.title,
             planName: activePlan?.name || null,
@@ -138,7 +137,7 @@ export default function HostedSlugPayPage({
       return;
     }
     try {
-      const activeChainId = chainId || 5042002;
+      const activeChainId = chainId;
       const targetRpc = activeChainId === 5042
         ? process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL
         : process.env.NEXT_PUBLIC_ARC_TESTNET_RPC_URL;
@@ -211,16 +210,12 @@ export default function HostedSlugPayPage({
               </span>
             </div>
           </div>
-          <Badge variant="secondary" className="font-mono">~600ms</Badge>
         </div>
 
         {isSuccess && receipt ? (
           <div className="text-center py-2">
             <CheckCircle2 className="w-16 h-16 text-accent mx-auto mb-3" strokeWidth={1.2} />
-            <h2 className="text-h4 font-semibold text-ink mb-1">Payment confirmed</h2>
-            <p className="text-tiny text-ink-3 mb-6">
-              Settled in ~600ms on Arc Layer-1 directly to merchant.
-            </p>
+            <h2 className="text-h4 font-semibold text-ink mb-6">Payment confirmed</h2>
 
             <div className="rounded-ctl border border-line bg-raised p-4 text-tiny text-left space-y-2.5 mb-6 font-mono">
               <div className="flex justify-between">
@@ -263,7 +258,7 @@ export default function HostedSlugPayPage({
                   </Button>
                 </a>
               )}
-              <a href={getExplorerTxUrl(chainId || 5042002, receipt.txHash)} target="_blank" rel="noreferrer" className="block">
+              <a href={getExplorerTxUrl(chainId, receipt.txHash)} target="_blank" rel="noreferrer" className="block">
                 <Button variant="outline" className="w-full text-tiny gap-1.5">
                   <span>View on ArcScan</span>
                   <ExternalLink className="w-3.5 h-3.5" />

@@ -15,6 +15,7 @@ import { Eyebrow } from '@/components/eyebrow';
 import { Reveal } from '@/components/motion';
 import { Input } from '@/components/ui/input';
 import { useNetworkSettlements } from '@/lib/use-network-settlements';
+import { DEFAULT_APP_CHAIN_ID } from '@/lib/chain-config';
 import {
   Activity,
   Copy,
@@ -30,7 +31,7 @@ import {
 export default function NetworkStatsPage() {
   const chainId = useChainId();
   const gatewayAddress =
-    DEFAULT_GATEWAY_ADDRESSES[chainId] ?? DEFAULT_GATEWAY_ADDRESSES[5042002];
+    DEFAULT_GATEWAY_ADDRESSES[chainId] ?? DEFAULT_GATEWAY_ADDRESSES[DEFAULT_APP_CHAIN_ID];
 
   // Protocol-wide totals still come from the contract — single-value reads are cheap
   // and represent the on-chain source of truth. The settlement feed table switches
@@ -251,7 +252,7 @@ export default function NetworkStatsPage() {
                         </td>
                         <td className="py-3.5 px-5 text-right">
                           <a
-                            href={getExplorerTxUrl(chainId || 5042002, item.txHash as `0x${string}`)}
+                            href={getExplorerTxUrl(chainId, item.txHash as `0x${string}`)}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 text-accent hover:text-accent-2"

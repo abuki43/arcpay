@@ -154,7 +154,7 @@ export default function MerchantDashboardPage() {
         {activeTab === 'overview' && (
           <OverviewTab
             settlements={settlements} isLoading={isLoadingFeed}
-            onRefresh={loadSettlements} chainId={chainId || 5042002}
+            onRefresh={loadSettlements} chainId={chainId}
             searchTerm={searchTerm} setSearchTerm={setSearchTerm}
             copiedId={copiedId} onCopy={handleCopy} onExportCsv={handleExportCsv}
           />
