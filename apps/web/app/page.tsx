@@ -111,7 +111,7 @@ function CodeSection() {
                 </Button>
               </Link>
               <Link
-                href="https://github.com"
+                href="https://github.com/abuki43/arcpay"
                 className="inline-flex items-center gap-1.5 text-tiny text-ink-2 hover:text-ink transition-colors self-center"
               >
                 View on GitHub <ArrowUpRight className="w-3.5 h-3.5" />

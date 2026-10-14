@@ -12,10 +12,10 @@ const product = [
 ];
 
 const developers = [
-  { label: 'GitHub Repository', href: 'https://github.com' },
-  { label: 'ArcScan Explorer', href: 'https://explorer.testnet.arc.io' },
+  { label: 'GitHub Repository', href: 'https://github.com/abuki43/arcpay' },
+  { label: 'ArcScan Explorer', href: 'https://explorer.arc.io' },
   { label: 'Circle Faucet', href: 'https://faucet.circle.com' },
-  { label: 'NPM Package', href: '/docs' },
+  { label: 'NPM Package', href: 'https://www.npmjs.com/package/@arcpay/sdk' },
 ];
 
 export function Footer() {
