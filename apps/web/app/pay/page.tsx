@@ -114,7 +114,6 @@ function PayContent() {
           <div className="text-center py-2">
             <CheckCircle2 className="w-16 h-16 text-accent mx-auto mb-4" strokeWidth={1.2} />
             <h2 className="text-h4 font-semibold text-ink mb-1">Payment settled</h2>
-            <p className="text-tiny text-ink-3 mb-6">Confirmed in ~600ms on Arc Layer-1</p>
 
             <div className="rounded-ctl border border-line bg-raised p-4 text-tiny text-left space-y-2.5 mb-6 font-mono">
               <div className="flex justify-between">
@@ -171,7 +170,7 @@ function PayContent() {
                 {isConnecting
                   ? 'Connecting wallet…'
                   : isPaying
-                  ? 'Confirming on Arc (~600ms)…'
+                  ? 'Confirming payment…'
                   : `Pay $${parsedAmount.toFixed(2)} USDC`}
               </span>
             </Button>

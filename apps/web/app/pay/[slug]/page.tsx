@@ -389,7 +389,7 @@ export default function HostedSlugPayPage({
                 {isConnecting
                   ? 'Connecting wallet…'
                   : isPaying
-                  ? 'Confirming on Arc (~600ms)…'
+                  ? 'Confirming payment…'
                   : `Pay $${currentAmount.toFixed(2)} USDC`}
               </span>
             </Button>

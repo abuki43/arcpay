@@ -25,7 +25,6 @@ import type {
   PaymentReceipt,
 } from './types';
 import {
-  calculateArcFee,
   formatUsdc,
   generateOrderId,
   getExplorerTxUrl,
@@ -412,7 +411,6 @@ export function CheckoutModal({
   if (!isOpen) return null;
 
   const grossAmount = parseUsdc(params.amount);
-  const feeInfo = calculateArcFee(params.amount);
   const hasInjected = typeof window !== 'undefined' && Boolean((window as any).ethereum);
 
   // Surface tokens for legacy themes (back-compat rendering of emerald / light)
@@ -670,17 +668,6 @@ export function CheckoutModal({
                     USDC
                   </span>
                 </div>
-                <div
-                  style={{
-                    fontSize: '10px',
-                    color: lg.muted,
-                    fontFamily: T.fontMono,
-                    marginTop: '4px',
-                    letterSpacing: '0.02em',
-                  }}
-                >
-                  fee 0.40% · ${feeInfo.formattedFee}
-                </div>
               </div>
             </div>
           </div>
@@ -714,18 +701,6 @@ export function CheckoutModal({
                 }}
               >
                 Payment settled
-              </div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: lg.sub,
-                  marginBottom: '16px',
-                  fontFamily: T.fontMono,
-                  letterSpacing: '0.02em',
-                }}
-              >
-                Confirmed in ~600ms on Arc L1
-                {receipt.blockNumber > 0n ? ` · block #${receipt.blockNumber}` : ''}
               </div>
 
               <div
@@ -883,7 +858,7 @@ export function CheckoutModal({
                     {isConnecting
                       ? 'Connecting wallet…'
                       : isPaying
-                      ? 'Confirming on Arc (~600ms)…'
+                      ? 'Confirming payment…'
                       : `Pay $${formatUsdc(grossAmount)} USDC`}
                   </span>
                 </button>
