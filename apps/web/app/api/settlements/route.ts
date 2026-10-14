@@ -7,6 +7,7 @@ import {
   arcMainnet,
 } from '@arcpay/sdk';
 import { dispatchMerchantWebhook } from '@/lib/webhook-dispatcher';
+import { DEFAULT_APP_CHAIN_ID, resolveGatewayAddress } from '@/lib/chain-config';
 import { createPublicClient, http, type Hash, type Address } from 'viem';
 
 export async function GET(req: NextRequest) {
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
       planId,
       buyerEmail,
       buyerHandle,
-      chainId = 5042002,
+      chainId = DEFAULT_APP_CHAIN_ID,
       metadata,
     } = body;
 
@@ -135,10 +136,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Read payment record directly from ArcPaymentGateway contract
-    const gatewayAddress =
-      (DEFAULT_GATEWAY_ADDRESSES as Record<number, `0x${string}`>)[chainId] ||
-      DEFAULT_GATEWAY_ADDRESSES[5042002];
+    // Read payment record directly from ArcPaymentGateway contract.
+    // Resolve the gateway for the requested chain only — never fall back to a
+    // different network, which would report a real mainnet payment as
+    // "not settled" after querying the wrong contract.
+    let gatewayAddress: `0x${string}`;
+    try {
+      gatewayAddress = resolveGatewayAddress(
+        chainId,
+        DEFAULT_GATEWAY_ADDRESSES as Record<number, `0x${string}`>,
+      );
+    } catch (err) {
+      return NextResponse.json(
+        { error: (err as Error).message },
+        { status: 400 },
+      );
+    }
 
     const paymentRecord = await publicClient.readContract({
       address: gatewayAddress,

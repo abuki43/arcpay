@@ -30,16 +30,24 @@ import {
 } from '@arcpay/sdk';
 import { prisma } from '../lib/db';
 import { dispatchMerchantWebhook } from '../lib/webhook-dispatcher';
+import { DEFAULT_APP_CHAIN_ID, resolveGatewayAddress } from '../lib/chain-config';
 
-const CHAIN_ID = parseInt(process.env.CHAIN_ID || '5042002', 10);
+const CHAIN_ID = parseInt(process.env.CHAIN_ID || String(DEFAULT_APP_CHAIN_ID), 10);
 const RPC_URL =
   process.env.RPC_URL ||
   (CHAIN_ID === 5042
     ? process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL
     : process.env.NEXT_PUBLIC_ARC_TESTNET_RPC_URL);
-const CONTRACT_ADDRESS = (process.env.CONTRACT_ADDRESS ||
-  DEFAULT_GATEWAY_ADDRESSES[CHAIN_ID] ||
-  DEFAULT_GATEWAY_ADDRESSES[5042002]) as Address;
+
+// Resolve the gateway for this chain only. Falling back to another network here
+// would silently index the wrong contract and leave the ledger looking healthy.
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS
+  ? (process.env.CONTRACT_ADDRESS as Address)
+  : resolveGatewayAddress(
+      CHAIN_ID,
+      DEFAULT_GATEWAY_ADDRESSES as Record<number, `0x${string}`>,
+    );
+
 const START_BLOCK = BigInt(process.env.START_BLOCK || '0');
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '2000', 10);
 const CHUNK_SIZE = BigInt(parseInt(process.env.CHUNK_SIZE || '10', 10));

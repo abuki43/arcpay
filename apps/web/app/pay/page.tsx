@@ -7,11 +7,10 @@ import confetti from 'canvas-confetti';
 import { useCheckout } from '@arcpay/sdk/react';
 import {
   shortenAddress,
-  calculateArcFee,
   getExplorerTxUrl,
 } from '@arcpay/sdk';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { DEFAULT_APP_CHAIN_ID } from '@/lib/chain-config';
 import {
   Zap,
   ShieldCheck,
@@ -37,13 +36,17 @@ function PayContent() {
   const amountStr = searchParams.get('amount') || '29.00';
   const item = searchParams.get('item') || 'One-Time Purchase';
   const chainIdStr = searchParams.get('chainId');
-  const chainId = chainIdStr ? parseInt(chainIdStr, 10) : 5042002;
+  // NOTE: chainId comes from the query string, not wagmi, so it can be absent.
+  // Fall back to the configured default rather than a hardcoded testnet id —
+  // otherwise a link without ?chainId= settles on the wrong network.
+  const chainId = chainIdStr
+    ? parseInt(chainIdStr, 10)
+    : DEFAULT_APP_CHAIN_ID;
   const metadataRaw = searchParams.get('metadata');
 
   const [copiedTx, setCopiedTx] = useState(false);
 
   const parsedAmount = parseFloat(amountStr) || 0;
-  const feeInfo = calculateArcFee(parsedAmount);
 
   useEffect(() => {
     if (isSuccess && receipt) {
@@ -105,7 +108,6 @@ function PayContent() {
               </span>
             </div>
           </div>
-          <Badge variant="secondary" className="font-mono">0.40% fee</Badge>
         </div>
 
         {isSuccess && receipt ? (
@@ -154,10 +156,6 @@ function PayContent() {
               </div>
               <h3 className="text-body font-medium text-ink mb-1">{item}</h3>
               <p className="text-tiny text-ink-3">Merchant: {shortenAddress(merchant)}</p>
-              <div className="mt-4 pt-4 border-t border-line flex justify-between text-nano uppercase tracking-mono-cap text-ink-3 font-mono tabular-nums">
-                <span>Protocol fee (0.4%) ${feeInfo.formattedFee}</span>
-                <span className="text-accent">Pure native USDC gas</span>
-              </div>
             </div>
 
             {error && (
