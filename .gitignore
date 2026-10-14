@@ -28,6 +28,8 @@ packages/*/dist/
 .DS_Store
 Thumbs.db
 
+# Local tooling state
 .agents
 skills-lock.json
 .codegraph/
+.opencode/
