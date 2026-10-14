@@ -4,13 +4,12 @@ import { cn } from '@/lib/utils';
 interface KpiCardProps {
   label: string;
   value: string;
-  sub?: React.ReactNode;
   icon?: React.ReactNode;
   accent?: boolean;
   className?: string;
 }
 
-export function KpiCard({ label, value, sub, icon, accent, className }: KpiCardProps) {
+export function KpiCard({ label, value, icon, accent, className }: KpiCardProps) {
   return (
     <div
       className={cn(
@@ -49,11 +48,6 @@ export function KpiCard({ label, value, sub, icon, accent, className }: KpiCardP
       >
         {value}
       </div>
-      {sub && (
-        <div className={cn('text-tiny mt-2', accent ? 'text-ink-2' : 'text-ink-3')}>
-          {sub}
-        </div>
-      )}
     </div>
   );
 }

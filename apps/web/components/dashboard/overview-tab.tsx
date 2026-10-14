@@ -74,10 +74,10 @@ export function OverviewTab({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-ctl overflow-hidden">
-        <KpiCard label="Net received" value={`$${kpis.netUsdc} USDC`} sub="Direct to wallet · 0.40% fee" icon={<DollarSign className="w-4 h-4" />} accent />
-        <KpiCard label="Orders settled" value={kpis.count} sub="~600ms finality" icon={<CreditCard className="w-4 h-4" />} />
-        <KpiCard label="Average order" value={`$${kpis.avgUsdc} USDC`} sub="Avg revenue per order" icon={<TrendingUp className="w-4 h-4" />} />
-        <KpiCard label="Protocol fee" value={`$${kpis.feeUsdc} USDC`} sub="7× cheaper than Stripe" icon={<Percent className="w-4 h-4" />} />
+        <KpiCard label="Net received" value={`$${kpis.netUsdc} USDC`} icon={<DollarSign className="w-4 h-4" />} accent />
+        <KpiCard label="Orders settled" value={kpis.count} icon={<CreditCard className="w-4 h-4" />} />
+        <KpiCard label="Average order" value={`$${kpis.avgUsdc} USDC`} icon={<TrendingUp className="w-4 h-4" />} />
+        <KpiCard label="Protocol fee" value={`$${kpis.feeUsdc} USDC`} icon={<Percent className="w-4 h-4" />} />
       </div>
 
       <div className="rounded-ctl border border-line bg-surface overflow-hidden">

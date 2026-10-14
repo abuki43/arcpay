@@ -118,26 +118,22 @@ export default function NetworkStatsPage() {
           <KpiCard
             label="Gross volume"
             value={`$${formatUsdc(gross)} USDC`}
-            sub="Native USDC, pure gas"
             icon={<DollarSign className="w-4 h-4" />}
             accent
           />
           <KpiCard
             label="Merchants paid"
             value={`$${formatUsdc(netDistributed)} USDC`}
-            sub="Net settled to merchants"
             icon={<PieChart className="w-4 h-4" />}
           />
           <KpiCard
             label="Payments settled"
             value={txs.toString()}
-            sub="Sub-second finality"
             icon={<Activity className="w-4 h-4" />}
           />
           <KpiCard
             label={`Protocol fees (${effectiveRate.toFixed(2)}%)`}
             value={`$${formatUsdc(fees)} USDC`}
-            sub="0.40% flat · routed to treasury"
             icon={<Percent className="w-4 h-4" />}
           />
         </div>
