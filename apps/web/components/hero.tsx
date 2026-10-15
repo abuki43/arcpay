@@ -85,7 +85,7 @@ export function Hero() {
               <span>Arc / public</span>
               <span>window: 50 000 blocks</span>
             </div>
-            <LiveLedger limit={8} />
+            <LiveLedger limit={5} />
           </div>
         </div>
       </div>
